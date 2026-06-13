@@ -1,9 +1,9 @@
-; BKKleaner — Inno Setup installer script
+; BKKleaner — professional Inno Setup installer
 ; Build with:  iscc Installer\BKKleaner.iss
 ; Expects the self-contained publish output in publish\win-x64\
 
 #define MyAppName "BKKleaner"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "3.5.2"
 #define MyAppPublisher "X1NPAR1"
 #define MyAppURL "https://github.com/X1NPAR1/BKKleaner"
 #define MyAppExeName "BKKleaner.exe"
@@ -17,10 +17,11 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}/issues
 AppUpdatesURL={#MyAppURL}/releases
+VersionInfoVersion={#MyAppVersion}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-LicenseFile=..\LICENSE
+LicenseFile=EULA.txt
 OutputDir=..\artifacts
 OutputBaseFilename=BKKleaner-Setup-{#MyAppVersion}
 SetupIconFile=..\logo.ico
@@ -28,15 +29,16 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
+ShowLanguageDialog=yes
 PrivilegesRequired=admin
 ArchitecturesInstallIn64BitMode=x64compatible
 ArchitecturesAllowed=x64compatible
 DisableProgramGroupPage=yes
 CloseApplications=yes
 RestartApplications=no
-; Update/repair support: reinstalling over an existing copy upgrades in place.
 UsePreviousAppDir=yes
 UsePreviousGroup=yes
+UsePreviousLanguage=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -47,6 +49,7 @@ Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+Name: "launchstartup"; Description: "{cm:AutoStartProgram,{#MyAppName}}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
 Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -57,8 +60,31 @@ Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\logo.ico"; Tasks: desktopicon
 
+[Registry]
+; Persist the wizard language so the app starts in the chosen language on first run.
+Root: HKLM; Subkey: "SOFTWARE\BKKleaner"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "SOFTWARE\BKKleaner"; ValueType: string; ValueName: "DefaultLanguage"; ValueData: "{code:GetLangCode}"
+Root: HKLM; Subkey: "SOFTWARE\BKKleaner"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"
+Root: HKLM; Subkey: "SOFTWARE\BKKleaner"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"
+; Optional auto-start at login.
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "BKKleaner"; ValueData: """{app}\{#MyAppExeName}"""; Tasks: launchstartup; Flags: uninsdeletevalue
+
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent shellexec
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{localappdata}\BKKleaner\Logs"
+
+[Code]
+{ Maps the chosen Inno wizard language to the app's two-letter language code. }
+function GetLangCode(Param: String): String;
+var
+  Lang: String;
+begin
+  Lang := ActiveLanguage();
+  if Lang = 'turkish' then Result := 'tr'
+  else if Lang = 'german' then Result := 'de'
+  else if Lang = 'dutch' then Result := 'nl'
+  else if Lang = 'russian' then Result := 'ru'
+  else Result := 'en';
+end;

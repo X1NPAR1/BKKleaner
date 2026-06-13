@@ -46,20 +46,34 @@ New-Item -ItemType Directory -Force "$root\artifacts" | Out-Null
 Compress-Archive -Path "$root\publish\$Runtime\*" -DestinationPath "$root\artifacts\BKKleaner-$Runtime.zip" -Force
 
 if (-not $SkipInstaller) {
-    $iscc = Get-Command iscc -ErrorAction SilentlyContinue
-    if ($null -eq $iscc) {
-        $candidates = @("$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe")
-        $iscc = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-    } else {
-        $iscc = $iscc.Source
-    }
+    # --- Inno Setup (.exe) ---
+    $isccCandidates = @(
+        "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+        "$env:ProgramFiles\Inno Setup 6\ISCC.exe",
+        "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
+    )
+    $iscc = $isccCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
     if ($iscc) {
-        Write-Host "==> Installer (Inno Setup)" -ForegroundColor Cyan
+        Write-Host "==> Installer (Inno Setup .exe)" -ForegroundColor Cyan
         & $iscc "$root\Installer\BKKleaner.iss"
         if ($LASTEXITCODE -ne 0) { exit 1 }
     } else {
-        Write-Warning "Inno Setup (iscc) not found - installer skipped. The release CI pipeline builds it."
+        Write-Warning "Inno Setup (ISCC) not found - .exe installer skipped."
     }
+
+    # --- WiX (.msi) ---
+    $wix = Get-Command wix -ErrorAction SilentlyContinue
+    if ($wix) {
+        Write-Host "==> Installer (WiX .msi)" -ForegroundColor Cyan
+        & wix extension add -g WixToolset.UI.wixext
+        & wix build "$root\Installer\BKKleaner.wxs" -ext WixToolset.UI.wixext `
+            -d PublishDir="$root\publish\$Runtime" -b "$root" -b "$root\Installer" `
+            -arch x64 -o "$root\artifacts\BKKleaner-3.5.2.msi"
+        if ($LASTEXITCODE -ne 0) { exit 1 }
+    } else {
+        Write-Warning "WiX not found - .msi installer skipped. Install with: dotnet tool install --global wix"
+    }
+    Remove-Item "$root\artifacts\*.wixpdb" -ErrorAction SilentlyContinue
 }
 
 Write-Host "`nBuild pipeline finished. Artifacts:" -ForegroundColor Green

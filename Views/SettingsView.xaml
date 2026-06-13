@@ -53,6 +53,36 @@
 
             <Border Style="{StaticResource Card}">
                 <StackPanel>
+                    <TextBlock Text="{Binding [settings.behavior], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
+                    <CheckBox IsChecked="{Binding MinimizeToTray}"
+                              Content="{Binding [settings.minimize_tray], Source={x:Static loc:Loc.Instance}}"/>
+                    <CheckBox IsChecked="{Binding CloseToTray}"
+                              Content="{Binding [settings.close_tray], Source={x:Static loc:Loc.Instance}}"/>
+                    <CheckBox IsChecked="{Binding EnableAnimations}"
+                              Content="{Binding [settings.animations], Source={x:Static loc:Loc.Instance}}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="{Binding [settings.auto_ram], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
+                    <CheckBox IsChecked="{Binding AutoRamCleanEnabled}"
+                              Content="{Binding [settings.auto_ram_enable], Source={x:Static loc:Loc.Instance}}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0" IsEnabled="{Binding AutoRamCleanEnabled}">
+                        <TextBlock Text="{Binding [settings.auto_ram_interval], Source={x:Static loc:Loc.Instance}}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox ItemsSource="{Binding AutoRamIntervals}" SelectedItem="{Binding AutoRamCleanInterval}" MinWidth="90">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock><Run Text="{Binding Mode=OneWay}"/><Run Text=" dk / min"/></TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
                     <TextBlock Text="{Binding [settings.safety], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
                     <CheckBox IsChecked="{Binding CreateRestorePoint}"
                               Content="{Binding [settings.restore_point], Source={x:Static loc:Loc.Instance}}"/>

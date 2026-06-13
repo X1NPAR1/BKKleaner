@@ -48,8 +48,16 @@ public partial class App : Application
         else
             themes.ApplyTheme(settings.Current.Theme);
 
+        // Global animation switch, kept in sync with the setting.
+        UI.AnimationSettings.Enabled = settings.Current.EnableAnimations;
+        settings.SettingsChanged += (_, _) =>
+            UI.AnimationSettings.Enabled = settings.Current.EnableAnimations;
+
         // Start monitoring before the dashboard appears.
         _services.GetRequiredService<IHardwareMonitoringService>().Start();
+
+        // Start the automatic RAM-clean scheduler (reads its own settings).
+        _services.GetRequiredService<IAutoRamCleanService>();
 
         var window = _services.GetRequiredService<MainWindow>();
         MainWindow = window;
@@ -113,6 +121,9 @@ public partial class App : Application
         services.AddSingleton<IBenchmarkService, BenchmarkService>();
         services.AddSingleton<IUpdateService, UpdateService>();
         services.AddSingleton<IWebhookAutomationService, WebhookAutomationService>();
+        services.AddSingleton<IAutoRamCleanService, AutoRamCleanService>();
+        services.AddSingleton<ISystemInfoService, SystemInfoService>();
+        services.AddSingleton<INavigationService, NavigationService>();
 
         // ViewModels
         services.AddSingleton<DashboardViewModel>();

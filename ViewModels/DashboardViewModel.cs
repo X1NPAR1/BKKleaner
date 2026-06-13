@@ -1,15 +1,24 @@
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Threading;
+using BKKleaner.Localization;
 using BKKleaner.Models;
 using BKKleaner.Monitoring;
 using BKKleaner.Optimization;
+using BKKleaner.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace BKKleaner.ViewModels;
 
-public sealed partial class DashboardViewModel : ObservableObject
+public sealed partial class DashboardViewModel : ObservableObject, IDisposable
 {
     private readonly IOptimizationService _optimization;
+    private readonly IRamCleanerService _ramCleaner;
+    private readonly ITempCleanerService _tempCleaner;
+    private readonly ISystemInfoService _systemInfo;
+    private readonly INavigationService _navigation;
+    private readonly DispatcherTimer _slowTimer;
 
     [ObservableProperty] private double _cpuTemp;
     [ObservableProperty] private double _cpuUsage;
@@ -25,15 +34,66 @@ public sealed partial class DashboardViewModel : ObservableObject
     [ObservableProperty] private int _optimizationScore;
     [ObservableProperty] private string? _activeAlert;
 
+    // System info
+    [ObservableProperty] private string _machineName = "—";
+    [ObservableProperty] private string _osDescription = "—";
+    [ObservableProperty] private string _cpuName = "—";
+    [ObservableProperty] private string _gpuName = "—";
+    [ObservableProperty] private string _totalRam = "—";
+    [ObservableProperty] private string _uptime = "—";
+
+    // Quick actions
+    [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private string? _quickActionStatus;
+
     public ObservableCollection<double> CpuHistory { get; } = [];
     public ObservableCollection<double> GpuHistory { get; } = [];
     public ObservableCollection<double> RamHistory { get; } = [];
+    public ObservableCollection<ProcessUsage> TopProcesses { get; } = [];
 
-    public DashboardViewModel(IHardwareMonitoringService monitoring, IOptimizationService optimization)
+    public DashboardViewModel(
+        IHardwareMonitoringService monitoring,
+        IOptimizationService optimization,
+        IRamCleanerService ramCleaner,
+        ITempCleanerService tempCleaner,
+        ISystemInfoService systemInfo,
+        INavigationService navigation)
     {
         _optimization = optimization;
+        _ramCleaner = ramCleaner;
+        _tempCleaner = tempCleaner;
+        _systemInfo = systemInfo;
+        _navigation = navigation;
         monitoring.SnapshotUpdated += OnSnapshot;
         monitoring.WarningRaised += OnWarning;
+
+        LoadSystemInfo();
+
+        // Uptime + top processes refresh on a slower cadence than sensors.
+        _slowTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+        _slowTimer.Tick += (_, _) => RefreshSlow();
+        _slowTimer.Start();
+        RefreshSlow();
+    }
+
+    private void LoadSystemInfo()
+    {
+        var info = _systemInfo.GetSystemInfo();
+        MachineName = info.MachineName;
+        OsDescription = info.OsDescription;
+        CpuName = info.CpuName;
+        GpuName = info.GpuName;
+        TotalRam = $"{info.TotalRamGb:0.#} GB · {info.LogicalCores} {Loc.Instance["dashboard.cores"]}";
+    }
+
+    private void RefreshSlow()
+    {
+        var up = _systemInfo.GetUptime();
+        Uptime = $"{(int)up.TotalDays}d {up.Hours}h {up.Minutes}m";
+
+        var processes = _systemInfo.GetTopProcessesByMemory(6);
+        TopProcesses.Clear();
+        foreach (var p in processes) TopProcesses.Add(p);
     }
 
     private void OnSnapshot(object? sender, HardwareSnapshot s)
@@ -67,7 +127,7 @@ public sealed partial class DashboardViewModel : ObservableObject
     private void OnWarning(object? sender, ThresholdWarning warning)
     {
         Application.Current?.Dispatcher.BeginInvoke(() =>
-            ActiveAlert = $"{warning.MetricKey}: {warning.Value:0.#} (≥ {warning.Threshold:0.#})");
+            ActiveAlert = $"{Loc.Instance[warning.MetricKey]}: {warning.Value:0.#} (≥ {warning.Threshold:0.#})");
     }
 
     private static void Push(ObservableCollection<double> series, double value)
@@ -94,4 +154,44 @@ public sealed partial class DashboardViewModel : ObservableObject
         var applied = _optimization.Actions.Count(a => a.IsApplied);
         return (int)Math.Round(applied / (double)total * 100);
     }
+
+    // ---- quick actions --------------------------------------------------------
+
+    [RelayCommand]
+    private async Task QuickCleanRamAsync()
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        QuickActionStatus = Loc.Instance["ram.cleaning"];
+        try
+        {
+            var result = await _ramCleaner.CleanAsync(true, true, false);
+            QuickActionStatus = $"{Loc.Instance["ram.freed"]}: {result.FreedMb:0} MB";
+        }
+        finally { IsBusy = false; }
+    }
+
+    [RelayCommand]
+    private async Task QuickCleanTempAsync()
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        QuickActionStatus = Loc.Instance["temp.scanning"];
+        try
+        {
+            var items = await _tempCleaner.ScanAsync(CleanMode.Smart);
+            var result = await _tempCleaner.CleanAsync(items, CleanMode.Smart);
+            QuickActionStatus = $"{Loc.Instance["temp.cleaned"]}: {result.ItemsRemoved} · " +
+                                $"{result.BytesFreed / 1024.0 / 1024.0:0.#} MB";
+        }
+        finally { IsBusy = false; }
+    }
+
+    [RelayCommand]
+    private void GoToOptimization() => _navigation.NavigateTo("optimization");
+
+    [RelayCommand]
+    private void GoToProfiles() => _navigation.NavigateTo("profiles");
+
+    public void Dispose() => _slowTimer.Stop();
 }

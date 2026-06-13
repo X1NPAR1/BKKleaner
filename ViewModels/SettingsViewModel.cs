@@ -20,10 +20,16 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private double _ramUsageWarning;
     [ObservableProperty] private bool _createRestorePoint;
     [ObservableProperty] private bool _webhookEnabled;
+    [ObservableProperty] private bool _minimizeToTray;
+    [ObservableProperty] private bool _closeToTray;
+    [ObservableProperty] private bool _enableAnimations;
+    [ObservableProperty] private bool _autoRamCleanEnabled;
+    [ObservableProperty] private int _autoRamCleanInterval;
     [ObservableProperty] private string? _validationText;
 
     public IReadOnlyList<string> Languages => _localization.AvailableLanguages;
     public IReadOnlyList<string> Themes => _themes.AvailableThemes;
+    public IReadOnlyList<int> AutoRamIntervals => IAutoRamCleanService.AllowedIntervalsMinutes;
 
     public SettingsViewModel(ISettingsService settings, IThemeService themes,
         ILocalizationService localization)
@@ -41,6 +47,11 @@ public sealed partial class SettingsViewModel : ObservableObject
         _ramUsageWarning = current.RamUsageWarningPercent;
         _createRestorePoint = current.CreateRestorePointBeforeOptimization;
         _webhookEnabled = current.WebhookAutomationEnabled;
+        _minimizeToTray = current.MinimizeToTray;
+        _closeToTray = current.CloseToTray;
+        _enableAnimations = current.EnableAnimations;
+        _autoRamCleanEnabled = current.AutoRamCleanEnabled;
+        _autoRamCleanInterval = AutoRamCleanService.SnapInterval(current.AutoRamCleanIntervalMinutes);
     }
 
     partial void OnSelectedLanguageChanged(string value)
@@ -50,6 +61,22 @@ public sealed partial class SettingsViewModel : ObservableObject
     }
 
     partial void OnSelectedThemeChanged(string value) => _themes.ApplyTheme(value);
+
+    // Live-apply behavior toggles so the effect is immediate.
+    partial void OnEnableAnimationsChanged(bool value) =>
+        _settings.Update(s => s.EnableAnimations = value);
+
+    partial void OnMinimizeToTrayChanged(bool value) =>
+        _settings.Update(s => s.MinimizeToTray = value);
+
+    partial void OnCloseToTrayChanged(bool value) =>
+        _settings.Update(s => s.CloseToTray = value);
+
+    partial void OnAutoRamCleanEnabledChanged(bool value) =>
+        _settings.Update(s => s.AutoRamCleanEnabled = value);
+
+    partial void OnAutoRamCleanIntervalChanged(int value) =>
+        _settings.Update(s => s.AutoRamCleanIntervalMinutes = value);
 
     [RelayCommand]
     private void Save()
@@ -62,6 +89,11 @@ public sealed partial class SettingsViewModel : ObservableObject
             s.RamUsageWarningPercent = RamUsageWarning;
             s.CreateRestorePointBeforeOptimization = CreateRestorePoint;
             s.WebhookAutomationEnabled = WebhookEnabled;
+            s.MinimizeToTray = MinimizeToTray;
+            s.CloseToTray = CloseToTray;
+            s.EnableAnimations = EnableAnimations;
+            s.AutoRamCleanEnabled = AutoRamCleanEnabled;
+            s.AutoRamCleanIntervalMinutes = AutoRamCleanInterval;
         });
         ValidationText = Loc.Instance["settings.saved"];
     }

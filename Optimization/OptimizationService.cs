@@ -62,11 +62,49 @@ public sealed class OptimizationService : IOptimizationService
                 "Priority", 6, RegistryValueKind.DWord),
             new(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games",
                 "Scheduling Category", "High", RegistryValueKind.String)
+        ],
+        ["visual_effects_performance"] =
+        [
+            // Best-performance visual effects: drop animations/shadows/fades for snappier UI.
+            new(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects",
+                "VisualFXSetting", 2, RegistryValueKind.DWord),
+            new(@"HKEY_CURRENT_USER\Control Panel\Desktop", "UserPreferencesMask",
+                new byte[] { 0x90, 0x12, 0x03, 0x80, 0x10, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary),
+            new(@"HKEY_CURRENT_USER\Control Panel\Desktop\WindowMetrics", "MinAnimate", "0", RegistryValueKind.String)
+        ],
+        ["menu_show_delay"] =
+        [
+            new(@"HKEY_CURRENT_USER\Control Panel\Desktop", "MenuShowDelay", "0", RegistryValueKind.String)
+        ],
+        ["network_nagle"] =
+        [
+            // Disabling Nagle's algorithm lowers latency for real-time games (per-interface tweak base key).
+            new(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MSMQ\Parameters", "TCPNoDelay", 1, RegistryValueKind.DWord)
+        ],
+        ["disable_transparency"] =
+        [
+            new(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
+                "EnableTransparency", 0, RegistryValueKind.DWord)
+        ],
+        ["telemetry_reduce"] =
+        [
+            new(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection",
+                "AllowTelemetry", 0, RegistryValueKind.DWord)
         ]
     };
 
-    private const string PowerPlanActionId = "power_high_performance";
+    // Power-plan actions are handled via powercfg, keyed by their target scheme GUID.
     private const string HighPerformanceGuid = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c";
+    private const string PowerSaverGuid = "a1841308-3541-4fab-bc81-f71556f20b4a";
+    private const string BalancedGuid = "381b4222-f694-41f0-9685-ff5bb260df2e";
+    private const string UltimateTemplateGuid = "e9a42b02-d5df-448d-aa00-03f14749eb61";
+
+    private static readonly Dictionary<string, string> PowerPlanActions = new()
+    {
+        ["power_high_performance"] = HighPerformanceGuid,
+        ["power_ultimate"] = UltimateTemplateGuid,
+        ["power_saver"] = PowerSaverGuid
+    };
 
     public IReadOnlyList<OptimizationAction> Actions => _actions;
 
@@ -81,13 +119,20 @@ public sealed class OptimizationService : IOptimizationService
 
         _actions =
         [
-            new() { Id = PowerPlanActionId, TitleKey = "opt.power.title", DescriptionKey = "opt.power.desc", Category = OptimizationCategory.Power },
+            new() { Id = "power_high_performance", TitleKey = "opt.power.title", DescriptionKey = "opt.power.desc", Category = OptimizationCategory.Power },
+            new() { Id = "power_ultimate", TitleKey = "opt.ultimate.title", DescriptionKey = "opt.ultimate.desc", Category = OptimizationCategory.Power },
+            new() { Id = "power_saver", TitleKey = "opt.saver.title", DescriptionKey = "opt.saver.desc", Category = OptimizationCategory.Power },
             new() { Id = "game_mode", TitleKey = "opt.gamemode.title", DescriptionKey = "opt.gamemode.desc", Category = OptimizationCategory.Gaming },
             new() { Id = "background_apps", TitleKey = "opt.background.title", DescriptionKey = "opt.background.desc", Category = OptimizationCategory.Background },
             new() { Id = "scheduling_gaming", TitleKey = "opt.scheduling.title", DescriptionKey = "opt.scheduling.desc", Category = OptimizationCategory.Scheduling },
             new() { Id = "latency_responsiveness", TitleKey = "opt.latency.title", DescriptionKey = "opt.latency.desc", Category = OptimizationCategory.Latency },
             new() { Id = "gpu_scheduling", TitleKey = "opt.gpusched.title", DescriptionKey = "opt.gpusched.desc", Category = OptimizationCategory.Gaming, RequiresRestart = true },
-            new() { Id = "cpu_priority_games", TitleKey = "opt.cpupriority.title", DescriptionKey = "opt.cpupriority.desc", Category = OptimizationCategory.Gaming }
+            new() { Id = "cpu_priority_games", TitleKey = "opt.cpupriority.title", DescriptionKey = "opt.cpupriority.desc", Category = OptimizationCategory.Gaming },
+            new() { Id = "visual_effects_performance", TitleKey = "opt.visualfx.title", DescriptionKey = "opt.visualfx.desc", Category = OptimizationCategory.Visual },
+            new() { Id = "menu_show_delay", TitleKey = "opt.menudelay.title", DescriptionKey = "opt.menudelay.desc", Category = OptimizationCategory.Visual },
+            new() { Id = "disable_transparency", TitleKey = "opt.transparency.title", DescriptionKey = "opt.transparency.desc", Category = OptimizationCategory.Visual },
+            new() { Id = "network_nagle", TitleKey = "opt.nagle.title", DescriptionKey = "opt.nagle.desc", Category = OptimizationCategory.Latency },
+            new() { Id = "telemetry_reduce", TitleKey = "opt.telemetry.title", DescriptionKey = "opt.telemetry.desc", Category = OptimizationCategory.Background }
         ];
 
         foreach (var action in _actions)
@@ -99,9 +144,9 @@ public sealed class OptimizationService : IOptimizationService
     public Task<ActionPreview> PreviewAsync(string actionId) => Task.Run(() =>
     {
         var changes = new List<string>();
-        if (actionId == PowerPlanActionId)
+        if (PowerPlanActions.TryGetValue(actionId, out var planGuid))
         {
-            changes.Add($"Active power plan → High performance ({HighPerformanceGuid})");
+            changes.Add($"Active power plan → {actionId.Replace("power_", "").Replace('_', ' ')} ({planGuid})");
         }
         else if (ActionChanges.TryGetValue(actionId, out var regChanges))
         {
@@ -137,11 +182,16 @@ public sealed class OptimizationService : IOptimizationService
         {
             var record = new AppliedActionRecord { ActionId = actionId };
 
-            if (actionId == PowerPlanActionId)
+            if (PowerPlanActions.TryGetValue(actionId, out var planGuid))
             {
                 var previous = await RunPowercfgAsync("/getactivescheme", ct).ConfigureAwait(false);
                 record.PreviousValues["activeScheme"] = ExtractGuid(previous);
-                await RunPowercfgAsync($"/setactive {HighPerformanceGuid}", ct).ConfigureAwait(false);
+
+                // The Ultimate Performance plan is hidden until duplicated from its template.
+                if (actionId == "power_ultimate")
+                    planGuid = await EnsureUltimatePlanAsync(ct).ConfigureAwait(false);
+
+                await RunPowercfgAsync($"/setactive {planGuid}", ct).ConfigureAwait(false);
             }
             else if (ActionChanges.TryGetValue(actionId, out var regChanges))
             {
@@ -177,7 +227,7 @@ public sealed class OptimizationService : IOptimizationService
 
         var result = await _security.ExecuteSafeAsync(AppPermission.ModifyRegistry, $"Undo:{actionId}", async () =>
         {
-            if (actionId == PowerPlanActionId)
+            if (PowerPlanActions.ContainsKey(actionId))
             {
                 if (record.PreviousValues.TryGetValue("activeScheme", out var guid) && !string.IsNullOrEmpty(guid))
                     await RunPowercfgAsync($"/setactive {guid}", ct).ConfigureAwait(false);
@@ -200,8 +250,8 @@ public sealed class OptimizationService : IOptimizationService
                         var stored = JsonConvert.DeserializeAnonymousType(serialized, new { v = (object?)null, k = "" });
                         if (stored?.v is not null && Enum.TryParse<RegistryValueKind>(stored.k, out var kind))
                         {
-                            var value = kind == RegistryValueKind.DWord ? Convert.ToInt32(stored.v) : stored.v;
-                            Registry.SetValue(keyPath, valueName, value, kind);
+                            var value = RestoreTypedValue(stored.v, kind);
+                            if (value is not null) Registry.SetValue(keyPath, valueName, value, kind);
                         }
                     }
                 }
@@ -268,6 +318,29 @@ public sealed class OptimizationService : IOptimizationService
         var parts = powercfgOutput.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return parts.FirstOrDefault(p => Guid.TryParse(p, out _)) ?? string.Empty;
     }
+
+    /// <summary>Returns the Ultimate Performance plan GUID, creating it from the template if needed.</summary>
+    private async Task<string> EnsureUltimatePlanAsync(CancellationToken ct)
+    {
+        var list = await RunPowercfgAsync("/list", ct).ConfigureAwait(false);
+        // The duplicated plan keeps the template GUID on most systems; reuse it when present.
+        if (list.Contains(UltimateTemplateGuid, StringComparison.OrdinalIgnoreCase))
+            return UltimateTemplateGuid;
+
+        var output = await RunPowercfgAsync($"-duplicatescheme {UltimateTemplateGuid}", ct).ConfigureAwait(false);
+        var created = ExtractGuid(output);
+        return string.IsNullOrEmpty(created) ? UltimateTemplateGuid : created;
+    }
+
+    /// <summary>Reconstructs a stored registry value back into its native CLR type.</summary>
+    private static object? RestoreTypedValue(object stored, RegistryValueKind kind) => kind switch
+    {
+        RegistryValueKind.DWord => Convert.ToInt32(stored),
+        RegistryValueKind.QWord => Convert.ToInt64(stored),
+        // Newtonsoft serializes byte[] as a base64 string; convert it back.
+        RegistryValueKind.Binary => stored is string s ? Convert.FromBase64String(s) : stored,
+        _ => stored
+    };
 
     // ---- startup entries -----------------------------------------------------
 

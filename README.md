@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/)
 
-*WPF · MVVM · Clean Architecture · 5 languages · 6 themes*
+*WPF · MVVM · Clean Architecture · 5 languages · 6 themes · system tray · auto-clean*
 
 </div>
 
@@ -18,9 +18,9 @@
 
 ## 📸 Screenshots
 
-| Optimization (Turkish UI) | Temp Cleaner — real clean + quarantine | Updates |
+| Dashboard (quick actions, system info, top processes) | Settings (themed controls, tray, auto-RAM) | Profiles (8 presets, editable) |
 |---|---|---|
-| ![Optimization](Assets/screenshots/optimization-tr.png) | ![Temp Cleaner](Assets/screenshots/temp-cleaner-tr.png) | ![Updates](Assets/screenshots/updates-tr.png) |
+| ![Dashboard](Assets/screenshots/v352-dashboard.png) | ![Settings](Assets/screenshots/v352-settings.png) | ![Profiles](Assets/screenshots/v352-profiles.png) |
 
 ## ✨ Features
 
@@ -28,9 +28,11 @@
 |---|---|
 | 📊 **Dashboard** | CPU/GPU temperature, RAM usage & MHz, disk health, FPS estimate, health & optimization scores, live graphs, threshold alerts |
 | 📡 **Monitoring** | Real-time CPU (temp/usage/frequency/voltage/per-core), GPU (temp/usage/VRAM/fan/watt), RAM, SMART storage, motherboard sensors & fans — with CSV export |
-| ⚡ **Optimization** | Safe-only Windows tweaks: power plan, Game Mode, background apps, startup manager, CPU scheduling, latency improvements, hardware GPU scheduling — every action has **preview, undo and automatic registry backup** |
-| 🎮 **Profiles** | 6 gaming profiles (Competitive FPS, Maximum FPS, Balanced, Streaming, Low-End PC, Laptop) with preview, rollback and before/after benchmark comparison |
-| 🧠 **RAM Cleaner** | Working-set trimming, standby list purge, file-cache flush — protected system processes are never touched |
+| ⚡ **Optimization** | 14 safe-only Windows tweaks: High-Performance / **Ultimate** / Power-Saver plans, Game Mode, background apps, startup manager, CPU scheduling, latency & Nagle, hardware GPU scheduling, performance visual effects, menu delay, transparency, telemetry — every action has **preview, undo and automatic registry backup** |
+| 🎮 **Profiles** | 8 **editable** gaming profiles (Competitive FPS, Maximum FPS, **Ultimate Performance**, Balanced, Streaming, Low-End PC, Laptop, **Battery Saver**) with preview, rollback and before/after benchmark comparison |
+| 🧠 **RAM Cleaner** | Working-set trimming, standby list purge, file-cache flush — protected system processes are never touched — plus an **automatic scheduler** (5–120 min) |
+| 🖥️ **System tray** | Minimize/close to tray with a quick menu (Open · Clean RAM · Exit); runs quietly in the background |
+| ✨ **Animations** | Smooth page transitions, button micro-interactions and loading overlays — fully toggleable |
 | 🗑️ **Temp Cleaner** | Windows temp, browser caches, DirectX shader caches, logs, crash dumps — Smart / Deep / Preview modes with **quarantine-based restore** |
 | ⏪ **Recovery** | Automatic restore point + registry backup + config backup + snapshot before every optimization; one-click restore |
 | 🏁 **Benchmark** | CPU single/multi-thread, memory bandwidth, timer latency, FPS estimate — comparison reports in Markdown |
@@ -47,9 +49,11 @@
 ## 📥 Installation
 
 ### Installer (recommended)
-Download **BKKleaner-Setup-x.x.x.exe** from [Releases](https://github.com/X1NPAR1/BKKleaner/releases) and run it.
-Supports silent install (`/VERYSILENT`), custom install location, repair, update and uninstall.
-Default location: `C:\Program Files\BKKleaner`.
+Download from [Releases](https://github.com/X1NPAR1/BKKleaner/releases) — two professional installers are provided:
+- **BKKleaner-Setup-x.x.x.exe** (Inno Setup) — install-time language selection, license/privacy acceptance, optional auto-start.
+- **BKKleaner-x.x.x.msi** (WiX) — for managed/enterprise deployment (`msiexec /i /quiet`).
+
+Both support custom install location, shortcuts, repair, update and uninstall. Default location: `C:\Program Files\BKKleaner`.
 
 ### Portable
 Download **BKKleaner-win-x64.zip**, extract anywhere, run `BKKleaner.exe`.
@@ -87,8 +91,9 @@ Requirements: .NET SDK 9/10, Windows 10/11. Inno Setup 6 (optional, for the inst
 dotnet test BKKleaner.slnx
 ```
 
-68 tests: unit (services, parsers, safety guards), integration (temp cleaner quarantine/restore, recovery),
-UI logic (navigation, theme switching, localization) and performance guards.
+94 tests: unit (services, parsers, safety guards, auto-RAM interval snapping, default-language resolution),
+integration (temp cleaner quarantine/restore, recovery, profile editing), UI logic (navigation, theme
+switching, localization) and performance guards.
 
 ## 🏗️ Architecture
 

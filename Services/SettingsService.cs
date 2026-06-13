@@ -1,15 +1,19 @@
+using System.Globalization;
 using System.IO;
 using BKKleaner.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 
 namespace BKKleaner.Services;
 
 public sealed class SettingsService : ISettingsService
 {
+    private static readonly string[] SupportedLanguages = ["tr", "en", "de", "nl", "ru"];
+
     private readonly ILogger<SettingsService> _logger;
     private readonly string _settingsPath;
-    private readonly Lock _gate = new();
+    private readonly object _gate = new();
 
     public AppSettings Current { get; private set; }
     public string DataDirectory { get; }
@@ -40,7 +44,37 @@ public sealed class SettingsService : ISettingsService
         {
             _logger.LogError(ex, "Failed to load settings, falling back to defaults");
         }
-        return new AppSettings();
+
+        // First run: language preference from the installer, then the OS culture.
+        return new AppSettings
+        {
+            Language = ResolveDefaultLanguage(ReadInstallerLanguage(), CultureInfo.CurrentUICulture)
+        };
+    }
+
+    /// <summary>Picks the initial UI language: installer choice → OS culture → English.</summary>
+    internal static string ResolveDefaultLanguage(string? installerLanguage, CultureInfo osCulture)
+    {
+        if (installerLanguage is not null &&
+            SupportedLanguages.Contains(installerLanguage, StringComparer.OrdinalIgnoreCase))
+            return installerLanguage.ToLowerInvariant();
+
+        var osLang = osCulture.TwoLetterISOLanguageName.ToLowerInvariant();
+        return SupportedLanguages.Contains(osLang) ? osLang : "en";
+    }
+
+    private string? ReadInstallerLanguage()
+    {
+        try
+        {
+            using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\BKKleaner");
+            return key?.GetValue("DefaultLanguage") as string;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Installer language lookup failed");
+            return null;
+        }
     }
 
     public void Save()

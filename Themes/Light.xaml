@@ -14,4 +14,10 @@
     <SolidColorBrush x:Key="Brush.Danger" Color="#DC2626"/>
     <SolidColorBrush x:Key="Brush.GraphLine" Color="#2563EB"/>
     <SolidColorBrush x:Key="Brush.GraphFill" Color="#222563EB"/>
+    <SolidColorBrush x:Key="Brush.OnAccent" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Brush.ControlBackground" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Brush.Selection" Color="#D6E4FF"/>
+    <SolidColorBrush x:Key="Brush.Overlay" Color="#B3F4F6FA"/>
+    <SolidColorBrush x:Key="Brush.ScrollThumb" Color="#C2CBD8"/>
+    <Color x:Key="Color.Accent">#2563EB</Color>
 </ResourceDictionary>

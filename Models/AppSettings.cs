@@ -10,6 +10,14 @@ public sealed class AppSettings
     public double RamUsageWarningPercent { get; set; } = 90;
     public bool CreateRestorePointBeforeOptimization { get; set; } = true;
     public bool WebhookAutomationEnabled { get; set; } = true;
-    public bool MinimizeToTray { get; set; }
     public string? CustomThemePath { get; set; }
+
+    // Behavior
+    public bool MinimizeToTray { get; set; } = true;
+    public bool CloseToTray { get; set; } = true;
+    public bool EnableAnimations { get; set; } = true;
+
+    // Automatic RAM cleaning
+    public bool AutoRamCleanEnabled { get; set; }
+    public int AutoRamCleanIntervalMinutes { get; set; } = 30;
 }

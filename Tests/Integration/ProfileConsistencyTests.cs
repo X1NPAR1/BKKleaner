@@ -21,11 +21,12 @@ public class ProfileConsistencyTests
     }
 
     [Fact]
-    public void Exactly_six_required_profiles_exist()
+    public void All_required_profiles_exist_including_ultimate_and_battery()
     {
         var (profiles, _) = Create();
         Assert.Equal(
-            ["competitive_fps", "maximum_fps", "balanced", "streaming", "low_end", "laptop"],
+            ["competitive_fps", "maximum_fps", "ultimate_performance", "balanced",
+             "streaming", "low_end", "laptop", "battery_saver"],
             profiles.Profiles.Select(p => p.Id));
     }
 
@@ -57,5 +58,37 @@ public class ProfileConsistencyTests
     {
         var (profiles, _) = Create();
         Assert.Null(profiles.ActiveProfile);
+    }
+
+    [Fact]
+    public void Editing_a_profile_persists_and_can_be_reset()
+    {
+        var (profiles, _) = Create();
+        var profile = profiles.Profiles.First(p => p.Id == "balanced");
+        var original = profile.ActionIds.ToList();
+
+        profiles.UpdateProfileActions("balanced", ["game_mode"]);
+        Assert.Equal(["game_mode"], profile.ActionIds);
+
+        profiles.ResetProfile("balanced");
+        Assert.Equal(original, profile.ActionIds);
+    }
+
+    [Fact]
+    public void Editing_ignores_unknown_action_ids()
+    {
+        var (profiles, _) = Create();
+        profiles.UpdateProfileActions("balanced", ["game_mode", "not_a_real_action"]);
+        Assert.Equal(["game_mode"], profiles.Profiles.First(p => p.Id == "balanced").ActionIds);
+    }
+
+    [Fact]
+    public void Profile_customization_changed_event_fires()
+    {
+        var (profiles, _) = Create();
+        var fired = false;
+        profiles.ProfilesChanged += (_, _) => fired = true;
+        profiles.UpdateProfileActions("laptop", ["game_mode"]);
+        Assert.True(fired);
     }
 }

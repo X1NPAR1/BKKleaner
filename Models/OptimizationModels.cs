@@ -18,7 +18,8 @@ public enum OptimizationCategory
     Background,
     Startup,
     Scheduling,
-    Latency
+    Latency,
+    Visual
 }
 
 public sealed class StartupEntry
@@ -34,7 +35,8 @@ public sealed class GamingProfile
     public required string Id { get; init; }
     public required string NameKey { get; init; }
     public required string DescriptionKey { get; init; }
-    public required IReadOnlyList<string> ActionIds { get; init; }
+    /// <summary>Editable at runtime through the profile editor.</summary>
+    public required List<string> ActionIds { get; set; }
     public bool IsActive { get; set; }
 }
 

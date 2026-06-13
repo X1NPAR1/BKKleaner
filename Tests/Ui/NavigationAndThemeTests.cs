@@ -29,12 +29,15 @@ public class NavigationAndThemeTests
         var ramCleaner = new RamCleanerService(NullLogger<RamCleanerService>.Instance, security);
         var updates = new UpdateService(NullLogger<UpdateService>.Instance, security);
         var logStore = new LogStore();
+        var autoRam = new AutoRamCleanService(NullLogger<AutoRamCleanService>.Instance, settings, ramCleaner);
+        var systemInfo = new SystemInfoService(NullLogger<SystemInfoService>.Instance);
+        var navigation = new NavigationService();
 
         return new MainViewModel(
-            new DashboardViewModel(monitoring, optimization),
+            new DashboardViewModel(monitoring, optimization, ramCleaner, tempCleaner, systemInfo, navigation),
             new MonitoringViewModel(monitoring),
             new OptimizationViewModel(optimization, recovery, localization),
-            new RamCleanerViewModel(ramCleaner),
+            new RamCleanerViewModel(ramCleaner, settings, autoRam),
             new TempCleanerViewModel(tempCleaner),
             new ProfilesViewModel(profiles, benchmark, localization),
             new BenchmarkViewModel(benchmark),
@@ -43,6 +46,9 @@ public class NavigationAndThemeTests
             new LogsViewModel(logStore),
             new UpdatesViewModel(updates),
             security,
+            settings,
+            ramCleaner,
+            navigation,
             localization);
     }
 

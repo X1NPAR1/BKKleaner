@@ -22,10 +22,44 @@ public sealed class NullToCollapsedConverter : IValueConverter
         throw new NotSupportedException();
 }
 
+/// <summary>Bool → Visibility, with optional "invert" parameter.</summary>
+public sealed class BoolToVisibilityConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var flag = value is true;
+        if (parameter is "invert") flag = !flag;
+        return flag ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is Visibility.Visible;
+}
+
 public sealed class BytesToMbConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         value is long bytes ? $"{bytes / 1024.0 / 1024.0:0.##} MB" : "0 MB";
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>True when the bound value equals the converter parameter (for radio-style selection).</summary>
+public sealed class EqualityConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        Equals(value?.ToString(), parameter?.ToString());
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is true && parameter is not null ? parameter : Binding.DoNothing;
+}
+
+/// <summary>Collection count → Visibility (visible when empty, for empty-state placeholders).</summary>
+public sealed class EmptyToVisibleConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is int count && count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();

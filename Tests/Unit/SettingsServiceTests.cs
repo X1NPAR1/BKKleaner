@@ -6,11 +6,14 @@ namespace BKKleaner.Tests.Unit;
 
 public class SettingsServiceTests
 {
+    private static readonly string[] SupportedLanguages = ["tr", "en", "de", "nl", "ru"];
+
     [Fact]
     public void Defaults_are_sensible()
     {
         var svc = TestHelpers.CreateSettings(out _);
-        Assert.Equal("en", svc.Current.Language);
+        // First-run language is derived from the OS culture, so just assert it is supported.
+        Assert.Contains(svc.Current.Language, SupportedLanguages);
         Assert.Equal("Dark", svc.Current.Theme);
         Assert.True(svc.Current.CreateRestorePointBeforeOptimization);
     }
@@ -45,6 +48,6 @@ public class SettingsServiceTests
         File.WriteAllText(Path.Combine(dir, "settings.json"), "{ not valid json !!");
 
         var reloaded = new SettingsService(NullLogger<SettingsService>.Instance, dir);
-        Assert.Equal("en", reloaded.Current.Language);
+        Assert.Contains(reloaded.Current.Language, SupportedLanguages);
     }
 }

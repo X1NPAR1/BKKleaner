@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  BKKleaner MSI authoring (WiX v5).
+  Build:
+    wix extension add -g WixToolset.UI.wixext
+    wix build Installer\BKKleaner.wxs -ext WixToolset.UI.wixext ^
+        -d PublishDir=publish\win-x64 -arch x64 -o artifacts\BKKleaner-3.5.2.msi
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package Name="BKKleaner"
+           Manufacturer="X1NPAR1"
+           Version="3.5.2.0"
+           UpgradeCode="7F2C9A14-6B3E-4D52-9C81-2C3D5E9A0B17"
+           Scope="perMachine"
+           Compressed="yes">
+
+    <SummaryInformation Description="BKKleaner — premium Windows optimization, monitoring and cleaning suite" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of BKKleaner is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="AppIcon" SourceFile="logo.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/X1NPAR1/BKKleaner" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/X1NPAR1/BKKleaner/issues" />
+
+    <!-- Install location -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="BKKleaner" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppProgramMenuDir" Name="BKKleaner" />
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
+
+    <Feature Id="Main" Title="BKKleaner" Level="1">
+      <!-- Harvest the entire self-contained publish output. -->
+      <Files Include="$(PublishDir)\**" Directory="INSTALLFOLDER" />
+      <ComponentGroupRef Id="ShellIntegration" />
+    </Feature>
+
+    <ComponentGroup Id="ShellIntegration">
+      <!-- Registry: default language + install metadata -->
+      <Component Id="RegistryEntries" Directory="INSTALLFOLDER" Guid="*">
+        <RegistryKey Root="HKLM" Key="SOFTWARE\BKKleaner">
+          <RegistryValue Type="string" Name="Version" Value="3.5.2" KeyPath="yes" />
+          <RegistryValue Type="string" Name="InstallPath" Value="[INSTALLFOLDER]" />
+        </RegistryKey>
+      </Component>
+
+      <!-- Start menu shortcut -->
+      <Component Id="StartMenuShortcut" Directory="AppProgramMenuDir" Guid="*">
+        <Shortcut Id="StartMenuLink" Name="BKKleaner"
+                  Target="[INSTALLFOLDER]BKKleaner.exe"
+                  WorkingDirectory="INSTALLFOLDER" Icon="AppIcon" />
+        <RemoveFolder Id="RemoveProgramMenuDir" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\BKKleaner" Name="StartMenu"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <!-- Desktop shortcut -->
+      <Component Id="DesktopShortcut" Directory="DesktopFolder" Guid="*">
+        <Shortcut Id="DesktopLink" Name="BKKleaner"
+                  Target="[INSTALLFOLDER]BKKleaner.exe"
+                  WorkingDirectory="INSTALLFOLDER" Icon="AppIcon" />
+        <RegistryValue Root="HKCU" Key="Software\BKKleaner" Name="Desktop"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- License acceptance UI with install-dir selection. -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <WixVariable Id="WixUILicenseRtf" Value="EULA.rtf" />
+
+  </Package>
+</Wix>

@@ -39,17 +39,29 @@ jobs:
           New-Item -ItemType Directory -Force artifacts | Out-Null
           Compress-Archive -Path publish/win-x64/* -DestinationPath artifacts/BKKleaner-win-x64.zip
 
-      - name: Build installer (Inno Setup)
+      - name: Build installer (.exe via Inno Setup)
         shell: pwsh
         run: |
           choco install innosetup --no-progress -y
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" Installer\BKKleaner.iss
+
+      - name: Build installer (.msi via WiX)
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
+          wix extension add -g WixToolset.UI.wixext/5.0.2
+          $root = (Get-Location).Path
+          wix build Installer\BKKleaner.wxs -ext WixToolset.UI.wixext `
+            -d PublishDir="$root\publish\win-x64" -b "$root" -b "$root\Installer" `
+            -arch x64 -o artifacts\BKKleaner-3.5.2.msi
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             artifacts/BKKleaner-win-x64.zip
-            artifacts/BKKleaner-Setup-*.exe
+            artifacts/BKKleaner-Setup-3.5.2.exe
+            artifacts/BKKleaner-3.5.2.msi
           generate_release_notes: true
           draft: false
