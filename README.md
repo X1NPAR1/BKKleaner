@@ -16,6 +16,12 @@
 
 ---
 
+## 📸 Screenshots
+
+| Optimization (Turkish UI) | Temp Cleaner — real clean + quarantine | Updates |
+|---|---|---|
+| ![Optimization](Assets/screenshots/optimization-tr.png) | ![Temp Cleaner](Assets/screenshots/temp-cleaner-tr.png) | ![Updates](Assets/screenshots/updates-tr.png) |
+
 ## ✨ Features
 
 | Module | What it does |

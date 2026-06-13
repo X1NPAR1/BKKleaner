@@ -1,4 +1,4 @@
-<UserControl x:Class="BKKleaner.Views.DashboardView"
+﻿<UserControl x:Class="BKKleaner.Views.DashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="clr-namespace:BKKleaner.UI"
@@ -47,7 +47,7 @@
                         <TextBlock Text="{Binding [dashboard.disk_health], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
                         <TextBlock Text="{Binding DiskHealth}" Style="{StaticResource Metric}"/>
                         <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0">
-                            <Run Text="{Binding [dashboard.fps_estimate], Source={x:Static loc:Loc.Instance}}"/><Run Text=": ~"/><Run Text="{Binding FpsEstimate, Mode=OneWay}"/>
+                            <Run Text="{Binding [dashboard.fps_estimate], Mode=OneWay, Source={x:Static loc:Loc.Instance}}"/><Run Text=": ~"/><Run Text="{Binding FpsEstimate, Mode=OneWay}"/>
                         </TextBlock>
                     </StackPanel>
                 </Border>
