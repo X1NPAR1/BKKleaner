@@ -1,0 +1,132 @@
+using System.Collections.ObjectModel;
+using BKKleaner.Localization;
+using BKKleaner.Models;
+using BKKleaner.Optimization;
+using BKKleaner.Recovery;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace BKKleaner.ViewModels;
+
+public sealed partial class ActionItemViewModel : ObservableObject
+{
+    private readonly OptimizationViewModel _parent;
+    public OptimizationAction Action { get; }
+
+    [ObservableProperty] private bool _isApplied;
+    [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private string? _previewText;
+
+    public string Title => Loc.Instance[Action.TitleKey];
+    public string Description => Loc.Instance[Action.DescriptionKey];
+    public bool RequiresRestart => Action.RequiresRestart;
+
+    public ActionItemViewModel(OptimizationAction action, OptimizationViewModel parent)
+    {
+        Action = action;
+        _parent = parent;
+        _isApplied = action.IsApplied;
+    }
+
+    [RelayCommand]
+    private Task ToggleAsync() => _parent.ToggleActionAsync(this);
+
+    [RelayCommand]
+    private Task PreviewAsync() => _parent.PreviewActionAsync(this);
+
+    public void RefreshLocalization()
+    {
+        OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(Description));
+    }
+}
+
+public sealed partial class OptimizationViewModel : ObservableObject
+{
+    private readonly IOptimizationService _optimization;
+    private readonly IRecoveryService _recovery;
+
+    [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private string? _statusMessage;
+
+    public ObservableCollection<ActionItemViewModel> Actions { get; } = [];
+    public ObservableCollection<StartupEntry> StartupEntries { get; } = [];
+
+    public OptimizationViewModel(IOptimizationService optimization, IRecoveryService recovery,
+        ILocalizationService localization)
+    {
+        _optimization = optimization;
+        _recovery = recovery;
+        foreach (var action in optimization.Actions)
+            Actions.Add(new ActionItemViewModel(action, this));
+        localization.LanguageChanged += (_, _) =>
+        {
+            foreach (var a in Actions) a.RefreshLocalization();
+        };
+    }
+
+    public async Task ToggleActionAsync(ActionItemViewModel item)
+    {
+        if (item.IsBusy) return;
+        item.IsBusy = true;
+        try
+        {
+            if (item.Action.IsApplied)
+            {
+                if (await _optimization.UndoAsync(item.Action.Id))
+                    item.IsApplied = false;
+            }
+            else
+            {
+                // Mandatory backup before any change.
+                await _recovery.CreateFullBackupAsync(item.Action.Id);
+                if (await _optimization.ApplyAsync(item.Action.Id))
+                    item.IsApplied = true;
+            }
+            StatusMessage = item.IsApplied
+                ? $"{item.Title} ✓"
+                : $"{item.Title} — {Loc.Instance["opt.reverted"]}";
+        }
+        finally
+        {
+            item.IsBusy = false;
+        }
+    }
+
+    public async Task PreviewActionAsync(ActionItemViewModel item)
+    {
+        var preview = await _optimization.PreviewAsync(item.Action.Id);
+        item.PreviewText = string.Join(Environment.NewLine, preview.Changes);
+    }
+
+    [RelayCommand]
+    private async Task UndoAllAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            var count = await _optimization.UndoAllAsync();
+            foreach (var item in Actions) item.IsApplied = item.Action.IsApplied;
+            StatusMessage = $"{Loc.Instance["opt.undone"]}: {count}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task LoadStartupAsync()
+    {
+        var entries = await _optimization.GetStartupEntriesAsync();
+        StartupEntries.Clear();
+        foreach (var entry in entries) StartupEntries.Add(entry);
+    }
+
+    [RelayCommand]
+    private async Task ToggleStartupAsync(StartupEntry entry)
+    {
+        await _optimization.SetStartupEntryEnabledAsync(entry, !entry.Enabled);
+        await LoadStartupAsync();
+    }
+}

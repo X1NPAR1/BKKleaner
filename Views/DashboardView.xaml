@@ -1,0 +1,101 @@
+<UserControl x:Class="BKKleaner.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:BKKleaner.UI"
+             xmlns:loc="clr-namespace:BKKleaner.Localization">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock Text="{Binding [dashboard.title], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H1}"/>
+
+            <Border Style="{StaticResource Card}" Background="{DynamicResource Brush.Warning}"
+                    Visibility="{Binding ActiveAlert, Converter={StaticResource NullToCollapsed}}">
+                <TextBlock Text="{Binding ActiveAlert}" Foreground="Black" FontWeight="SemiBold"/>
+            </Border>
+
+            <UniformGrid Columns="4">
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding [dashboard.cpu_temp], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
+                        <TextBlock Style="{StaticResource Metric}">
+                            <Run Text="{Binding CpuTemp, Mode=OneWay}"/><Run Text=" °C"/>
+                        </TextBlock>
+                        <ProgressBar Style="{StaticResource MetricBar}" Value="{Binding CpuUsage, Mode=OneWay}" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding [dashboard.gpu_temp], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
+                        <TextBlock Style="{StaticResource Metric}">
+                            <Run Text="{Binding GpuTemp, Mode=OneWay}"/><Run Text=" °C"/>
+                        </TextBlock>
+                        <ProgressBar Style="{StaticResource MetricBar}" Value="{Binding GpuUsage, Mode=OneWay}" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding [dashboard.ram_usage], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
+                        <TextBlock Style="{StaticResource Metric}">
+                            <Run Text="{Binding RamUsagePercent, Mode=OneWay}"/><Run Text=" %"/>
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0">
+                            <Run Text="{Binding RamUsedGb, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding RamTotalGb, Mode=OneWay}"/><Run Text=" GB · "/><Run Text="{Binding RamMhz, Mode=OneWay}"/><Run Text=" MHz"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding [dashboard.disk_health], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
+                        <TextBlock Text="{Binding DiskHealth}" Style="{StaticResource Metric}"/>
+                        <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0">
+                            <Run Text="{Binding [dashboard.fps_estimate], Source={x:Static loc:Loc.Instance}}"/><Run Text=": ~"/><Run Text="{Binding FpsEstimate, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <UniformGrid Columns="2">
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding [dashboard.health_score], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
+                        <TextBlock Text="{Binding HealthScore}" Style="{StaticResource Metric}"
+                                   Foreground="{DynamicResource Brush.Success}"/>
+                        <ProgressBar Style="{StaticResource MetricBar}" Value="{Binding HealthScore, Mode=OneWay}"
+                                     Foreground="{DynamicResource Brush.Success}" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding [dashboard.optimization_score], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
+                        <TextBlock Text="{Binding OptimizationScore}" Style="{StaticResource Metric}"
+                                   Foreground="{DynamicResource Brush.AccentSecondary}"/>
+                        <ProgressBar Style="{StaticResource MetricBar}" Value="{Binding OptimizationScore, Mode=OneWay}"
+                                     Foreground="{DynamicResource Brush.AccentSecondary}" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="{Binding [dashboard.live_graphs], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
+                    <UniformGrid Columns="3">
+                        <StackPanel Margin="0,0,12,0">
+                            <TextBlock Text="CPU %" Style="{StaticResource Caption}"/>
+                            <ui:LiveGraph Values="{Binding CpuHistory}" Height="90"
+                                          Stroke="{DynamicResource Brush.GraphLine}" Fill="{DynamicResource Brush.GraphFill}"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,0">
+                            <TextBlock Text="GPU %" Style="{StaticResource Caption}"/>
+                            <ui:LiveGraph Values="{Binding GpuHistory}" Height="90"
+                                          Stroke="{DynamicResource Brush.AccentSecondary}" Fill="{DynamicResource Brush.GraphFill}"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="RAM %" Style="{StaticResource Caption}"/>
+                            <ui:LiveGraph Values="{Binding RamHistory}" Height="90"
+                                          Stroke="{DynamicResource Brush.Success}" Fill="{DynamicResource Brush.GraphFill}"/>
+                        </StackPanel>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

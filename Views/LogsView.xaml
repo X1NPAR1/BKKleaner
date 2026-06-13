@@ -1,0 +1,42 @@
+<UserControl x:Class="BKKleaner.Views.LogsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:BKKleaner.Localization">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="{Binding [logs.title], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H1}"/>
+            <Border Style="{StaticResource Card}">
+                <StackPanel Orientation="Horizontal">
+                    <ComboBox ItemsSource="{Binding Levels}" SelectedItem="{Binding FilterLevel}" Margin="0,0,12,0"/>
+                    <Button Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
+                            Content="{Binding [logs.export], Source={x:Static loc:Loc.Instance}}"
+                            Command="{Binding ExportCommand}"/>
+                    <Button Style="{StaticResource SecondaryButton}"
+                            Content="{Binding [logs.clear], Source={x:Static loc:Loc.Instance}}"
+                            Command="{Binding ClearCommand}"/>
+                    <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" Margin="14,0,0,0" Style="{StaticResource Caption}"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+            <ListBox ItemsSource="{Binding LogView}" VirtualizingPanel.IsVirtualizing="True">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock FontFamily="Consolas" FontSize="12" TextWrapping="Wrap">
+                            <Run Text="{Binding Timestamp, Mode=OneWay, StringFormat={}{0:HH:mm:ss}}" Foreground="{DynamicResource Brush.TextSecondary}"/>
+                            <Run Text="{Binding Level, Mode=OneWay}" Foreground="{DynamicResource Brush.Accent}"/>
+                            <Run Text="{Binding Category, Mode=OneWay}" Foreground="{DynamicResource Brush.TextSecondary}"/>
+                            <Run Text="{Binding Message, Mode=OneWay}"/>
+                        </TextBlock>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+    </Grid>
+</UserControl>

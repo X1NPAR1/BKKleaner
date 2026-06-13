@@ -1,0 +1,49 @@
+<Application x:Class="BKKleaner.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:BKKleaner.ViewModels"
+             xmlns:views="clr-namespace:BKKleaner.Views"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Themes/Dark.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/UI/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+                <views:DashboardView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:MonitoringViewModel}">
+                <views:MonitoringView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:OptimizationViewModel}">
+                <views:OptimizationView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:RamCleanerViewModel}">
+                <views:RamCleanerView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:TempCleanerViewModel}">
+                <views:TempCleanerView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ProfilesViewModel}">
+                <views:ProfilesView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:BenchmarkViewModel}">
+                <views:BenchmarkView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:RecoveryViewModel}">
+                <views:RecoveryView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+                <views:SettingsView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:LogsViewModel}">
+                <views:LogsView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:UpdatesViewModel}">
+                <views:UpdatesView/>
+            </DataTemplate>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

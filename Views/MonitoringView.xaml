@@ -1,0 +1,129 @@
+<UserControl x:Class="BKKleaner.Views.MonitoringView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:BKKleaner.UI"
+             xmlns:loc="clr-namespace:BKKleaner.Localization">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}"
+                        Content="{Binding [monitoring.export], Source={x:Static loc:Loc.Instance}}"
+                        Command="{Binding ExportCommand}" VerticalAlignment="Top"/>
+                <TextBlock Text="{Binding [monitoring.title], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H1}"/>
+            </DockPanel>
+            <TextBlock Text="{Binding ExportStatus}" Style="{StaticResource Caption}"
+                       Visibility="{Binding ExportStatus, Converter={StaticResource NullToCollapsed}}" Margin="0,0,0,8"/>
+
+            <UniformGrid Columns="2">
+                <!-- CPU -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="CPU" Style="{StaticResource H2}"/>
+                        <TextBlock Text="{Binding CpuName}" Style="{StaticResource Caption}" Margin="0,0,0,8"/>
+                        <UniformGrid Columns="2">
+                            <TextBlock><Run Text="{Binding [monitoring.temp], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding CpuTemp, Mode=OneWay}"/><Run Text=" °C"/></TextBlock>
+                            <TextBlock><Run Text="{Binding [monitoring.usage], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding CpuUsage, Mode=OneWay}"/><Run Text=" %"/></TextBlock>
+                            <TextBlock><Run Text="{Binding [monitoring.frequency], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding CpuMhz, Mode=OneWay}"/><Run Text=" MHz"/></TextBlock>
+                            <TextBlock><Run Text="{Binding [monitoring.voltage], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding CpuVoltage, Mode=OneWay}"/><Run Text=" V"/></TextBlock>
+                            <TextBlock><Run Text="{Binding [monitoring.power], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding CpuWatt, Mode=OneWay}"/><Run Text=" W"/></TextBlock>
+                        </UniformGrid>
+                        <TextBlock Text="{Binding [monitoring.per_core], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}" Margin="0,10,0,4"/>
+                        <ItemsControl ItemsSource="{Binding PerCoreLoad}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource Brush.CardHover}" CornerRadius="4"
+                                            Padding="6,3" Margin="0,0,4,4">
+                                        <TextBlock FontSize="11"><Run Text="{Binding Mode=OneWay}"/><Run Text="%"/></TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ui:LiveGraph Values="{Binding CpuTempHistory}" Height="70" MaxValue="100" Margin="0,8,0,0"
+                                      Stroke="{DynamicResource Brush.GraphLine}" Fill="{DynamicResource Brush.GraphFill}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- GPU -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="GPU" Style="{StaticResource H2}"/>
+                        <TextBlock Text="{Binding GpuName}" Style="{StaticResource Caption}" Margin="0,0,0,8"/>
+                        <UniformGrid Columns="2">
+                            <TextBlock><Run Text="{Binding [monitoring.temp], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding GpuTemp, Mode=OneWay}"/><Run Text=" °C"/></TextBlock>
+                            <TextBlock><Run Text="{Binding [monitoring.usage], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding GpuUsage, Mode=OneWay}"/><Run Text=" %"/></TextBlock>
+                            <TextBlock><Run Text="VRAM: "/><Run Text="{Binding VramUsedMb, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding VramTotalMb, Mode=OneWay}"/><Run Text=" MB"/></TextBlock>
+                            <TextBlock><Run Text="{Binding [monitoring.fan], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding GpuFanRpm, Mode=OneWay}"/><Run Text=" RPM"/></TextBlock>
+                            <TextBlock><Run Text="{Binding [monitoring.power], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding GpuWatt, Mode=OneWay}"/><Run Text=" W"/></TextBlock>
+                        </UniformGrid>
+                        <ui:LiveGraph Values="{Binding GpuTempHistory}" Height="70" MaxValue="100" Margin="0,8,0,0"
+                                      Stroke="{DynamicResource Brush.AccentSecondary}" Fill="{DynamicResource Brush.GraphFill}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- RAM -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="RAM" Style="{StaticResource H2}"/>
+                        <TextBlock><Run Text="{Binding [monitoring.usage], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding RamUsedGb, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding RamTotalGb, Mode=OneWay}"/><Run Text=" GB"/></TextBlock>
+                        <TextBlock><Run Text="MHz: "/><Run Text="{Binding RamMhz, Mode=OneWay}"/></TextBlock>
+                        <TextBlock><Run Text="{Binding [monitoring.timings], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding RamTimings, Mode=OneWay}"/></TextBlock>
+                        <TextBlock><Run Text="{Binding [monitoring.temp], Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding RamTemp, Mode=OneWay}"/></TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Mainboard -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding [monitoring.mainboard], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
+                        <TextBlock Text="{Binding MainboardName}" Style="{StaticResource Caption}" Margin="0,0,0,8"/>
+                        <TextBlock Text="{Binding [monitoring.fans], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
+                        <ItemsControl ItemsSource="{Binding Fans}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontSize="12"><Run Text="{Binding Name, Mode=OneWay}"/><Run Text=": "/><Run Text="{Binding Value, Mode=OneWay}"/><Run Text=" "/><Run Text="{Binding Unit, Mode=OneWay}"/></TextBlock>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="{Binding [monitoring.sensors], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}" Margin="0,8,0,0"/>
+                        <ItemsControl ItemsSource="{Binding BoardSensors}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontSize="12"><Run Text="{Binding Name, Mode=OneWay}"/><Run Text=": "/><Run Text="{Binding Value, Mode=OneWay}"/><Run Text=" "/><Run Text="{Binding Unit, Mode=OneWay}"/></TextBlock>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Storage -->
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="{Binding [monitoring.storage], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
+                    <ItemsControl ItemsSource="{Binding Disks}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource Brush.CardHover}" CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                        <TextBlock Style="{StaticResource Caption}">
+                                            <Run Text="SMART: "/><Run Text="{Binding SmartStatus, Mode=OneWay}"/>
+                                            <Run Text=" · "/><Run Text="{Binding TemperatureC, Mode=OneWay}"/><Run Text=" °C"/>
+                                            <Run Text=" · "/><Run Text="{Binding UsedPercent, Mode=OneWay, StringFormat={}{0:0.#}}"/><Run Text="% used"/>
+                                            <Run Text=" · R "/><Run Text="{Binding ReadMbPerSec, Mode=OneWay, StringFormat={}{0:0.#}}"/><Run Text=" MB/s"/>
+                                            <Run Text=" · W "/><Run Text="{Binding WriteMbPerSec, Mode=OneWay, StringFormat={}{0:0.#}}"/><Run Text=" MB/s"/>
+                                        </TextBlock>
+                                        <ProgressBar Style="{StaticResource MetricBar}" Value="{Binding UsedPercent, Mode=OneWay}" Margin="0,6,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

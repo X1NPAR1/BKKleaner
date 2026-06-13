@@ -1,0 +1,47 @@
+<UserControl x:Class="BKKleaner.Views.RamCleanerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:BKKleaner.Localization">
+    <StackPanel>
+        <TextBlock Text="{Binding [ram.title], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H1}"/>
+
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="{Binding [ram.options], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
+                <CheckBox IsChecked="{Binding TrimWorkingSets}"
+                          Content="{Binding [ram.trim], Source={x:Static loc:Loc.Instance}}"/>
+                <CheckBox IsChecked="{Binding ClearStandbyList}"
+                          Content="{Binding [ram.standby], Source={x:Static loc:Loc.Instance}}"/>
+                <CheckBox IsChecked="{Binding OptimizeCache}"
+                          Content="{Binding [ram.cache], Source={x:Static loc:Loc.Instance}}"/>
+                <Button Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Margin="0,12,0,0"
+                        Content="{Binding [ram.clean_now], Source={x:Static loc:Loc.Instance}}"
+                        Command="{Binding CleanCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}"
+                Visibility="{Binding ResultText, Converter={StaticResource NullToCollapsed}}">
+            <StackPanel>
+                <TextBlock Text="{Binding [ram.result], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
+                <TextBlock Text="{Binding ResultText}"/>
+                <UniformGrid Columns="2" Margin="0,10,0,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding [ram.before], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
+                        <ProgressBar Style="{StaticResource MetricBar}" Value="{Binding UsageBefore, Mode=OneWay}" Margin="0,4,12,0"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="{Binding [ram.after], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
+                        <ProgressBar Style="{StaticResource MetricBar}" Value="{Binding UsageAfter, Mode=OneWay}"
+                                     Foreground="{DynamicResource Brush.Success}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </UniformGrid>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <TextBlock Text="{Binding [ram.safety_note], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
+        </Border>
+    </StackPanel>
+</UserControl>

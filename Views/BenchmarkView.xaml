@@ -1,0 +1,58 @@
+<UserControl x:Class="BKKleaner.Views.BenchmarkView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:BKKleaner.Localization">
+    <StackPanel>
+        <TextBlock Text="{Binding [bench.title], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H1}"/>
+
+        <Border Style="{StaticResource Card}">
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
+                        Content="{Binding [bench.run], Source={x:Static loc:Loc.Instance}}"
+                        Command="{Binding RunCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
+                <Button Style="{StaticResource SecondaryButton}"
+                        Content="{Binding [bench.set_baseline], Source={x:Static loc:Loc.Instance}}"
+                        Command="{Binding MarkAsBaselineCommand}"/>
+                <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" Margin="14,0,0,0" Style="{StaticResource Caption}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}"
+                Visibility="{Binding LastResult, Converter={StaticResource NullToCollapsed}}">
+            <StackPanel DataContext="{Binding LastResult}">
+                <TextBlock Text="{Binding [bench.last_result], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
+                <UniformGrid Columns="4">
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="FPS (est.)" Style="{StaticResource Caption}"/>
+                        <TextBlock Text="{Binding FpsEstimate}" Style="{StaticResource Metric}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="CPU ST" Style="{StaticResource Caption}"/>
+                        <TextBlock Text="{Binding CpuSingleThreadScore}" Style="{StaticResource Metric}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="CPU MT" Style="{StaticResource Caption}"/>
+                        <TextBlock Text="{Binding CpuMultiThreadScore}" Style="{StaticResource Metric}"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="RAM MB/s" Style="{StaticResource Caption}"/>
+                        <TextBlock Text="{Binding MemoryBandwidthMbps}" Style="{StaticResource Metric}"/>
+                    </StackPanel>
+                </UniformGrid>
+                <TextBlock Style="{StaticResource Caption}" Margin="0,10,0,0">
+                    <Run Text="Latency: "/><Run Text="{Binding LatencyMs, Mode=OneWay}"/><Run Text=" ms · CPU load "/><Run Text="{Binding CpuLoadPercent, Mode=OneWay}"/><Run Text="% · RAM "/><Run Text="{Binding RamUsagePercent, Mode=OneWay}"/><Run Text="%"/>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource Card}"
+                Visibility="{Binding ComparisonText, Converter={StaticResource NullToCollapsed}}">
+            <StackPanel>
+                <TextBlock Text="{Binding [bench.comparison], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
+                <TextBlock Text="{Binding ComparisonText}" Foreground="{DynamicResource Brush.Success}"/>
+                <TextBlock Text="{Binding ReportPath}" Style="{StaticResource Caption}" Margin="0,6,0,0"/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

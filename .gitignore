@@ -1,0 +1,21 @@
+# Build output
+bin/
+obj/
+publish/
+artifacts/
+*.user
+*.suo
+.vs/
+
+# Runtime
+Logs/*.log
+Logs/*.txt
+
+# Secrets / private automation instructions (Discord webhook URLs must never be committed)
+WebHook.txt
+webhook.txt
+prompt.md
+
+# Test results
+TestResults/
+*.trx

@@ -1,0 +1,10 @@
+# BKKleaner webhook.txt automation sample.
+# Rename this file to "webhook.txt" and place it next to BKKleaner.exe.
+# One JSON task per line. Only whitelisted task types are executed;
+# everything else is rejected and logged.
+{"type":"clean_temp"}
+{"type":"ram_clean"}
+{"type":"optimize_gaming"}
+{"type":"switch_theme","value":"dark"}
+{"type":"switch_language","value":"en"}
+{"type":"benchmark"}
