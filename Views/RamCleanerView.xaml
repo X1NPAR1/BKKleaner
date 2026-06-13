@@ -56,10 +56,10 @@
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0"
                                     IsEnabled="{Binding AutoEnabled}">
                             <TextBlock Text="{Binding [ram.auto_interval], Source={x:Static loc:Loc.Instance}}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox ItemsSource="{Binding AutoIntervals}" SelectedItem="{Binding AutoInterval}" MinWidth="90">
+                            <ComboBox ItemsSource="{Binding AutoIntervals}" SelectedItem="{Binding AutoInterval}" MinWidth="110">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock><Run Text="{Binding Mode=OneWay}"/><Run Text=" "/><Run Text="dk / min"/></TextBlock>
+                                        <TextBlock Text="{Binding Mode=OneWay, Converter={StaticResource MinutesLabel}}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>

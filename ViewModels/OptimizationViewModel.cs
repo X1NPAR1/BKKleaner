@@ -20,6 +20,18 @@ public sealed partial class ActionItemViewModel : ObservableObject
     public string Title => Loc.Instance[Action.TitleKey];
     public string Description => Loc.Instance[Action.DescriptionKey];
     public bool RequiresRestart => Action.RequiresRestart;
+    public string CategoryLabel => Loc.Instance[$"opt.cat.{Action.Category}".ToLowerInvariant()];
+    public string CategoryGlyph => Action.Category switch
+    {
+        OptimizationCategory.Power => "",
+        OptimizationCategory.Gaming => "",
+        OptimizationCategory.Background => "",
+        OptimizationCategory.Startup => "",
+        OptimizationCategory.Scheduling => "",
+        OptimizationCategory.Latency => "",
+        OptimizationCategory.Visual => "",
+        _ => ""
+    };
 
     public ActionItemViewModel(OptimizationAction action, OptimizationViewModel parent)
     {
@@ -38,6 +50,7 @@ public sealed partial class ActionItemViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(Description));
+        OnPropertyChanged(nameof(CategoryLabel));
     }
 }
 
@@ -48,9 +61,13 @@ public sealed partial class OptimizationViewModel : ObservableObject
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _statusMessage;
+    [ObservableProperty] private int _appliedCount;
 
     public ObservableCollection<ActionItemViewModel> Actions { get; } = [];
     public ObservableCollection<StartupEntry> StartupEntries { get; } = [];
+
+    /// <summary>Grouped-by-category view of the actions for the section layout.</summary>
+    public System.ComponentModel.ICollectionView GroupedActions { get; }
 
     public OptimizationViewModel(IOptimizationService optimization, IRecoveryService recovery,
         ILocalizationService localization)
@@ -59,9 +76,16 @@ public sealed partial class OptimizationViewModel : ObservableObject
         _recovery = recovery;
         foreach (var action in optimization.Actions)
             Actions.Add(new ActionItemViewModel(action, this));
+
+        GroupedActions = System.Windows.Data.CollectionViewSource.GetDefaultView(Actions);
+        GroupedActions.GroupDescriptions.Add(
+            new System.Windows.Data.PropertyGroupDescription(nameof(ActionItemViewModel.CategoryLabel)));
+
+        AppliedCount = Actions.Count(a => a.IsApplied);
         localization.LanguageChanged += (_, _) =>
         {
             foreach (var a in Actions) a.RefreshLocalization();
+            GroupedActions.Refresh();
         };
     }
 
@@ -86,6 +110,7 @@ public sealed partial class OptimizationViewModel : ObservableObject
             StatusMessage = item.IsApplied
                 ? $"{item.Title} ✓"
                 : $"{item.Title} — {Loc.Instance["opt.reverted"]}";
+            AppliedCount = Actions.Count(a => a.IsApplied);
         }
         finally
         {
@@ -107,6 +132,7 @@ public sealed partial class OptimizationViewModel : ObservableObject
         {
             var count = await _optimization.UndoAllAsync();
             foreach (var item in Actions) item.IsApplied = item.Action.IsApplied;
+            AppliedCount = Actions.Count(a => a.IsApplied);
             StatusMessage = $"{Loc.Instance["opt.undone"]}: {count}";
         }
         finally

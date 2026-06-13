@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Management;
 using System.Text;
@@ -175,12 +175,19 @@ public sealed class HardwareMonitoringService : IHardwareMonitoringService
         return snapshot;
     }
 
+    /// <summary>Reads a sensor value, normalizing null/NaN/Infinity to 0 for display safety.</summary>
+    private static double SafeValue(ISensor s)
+    {
+        var v = s.Value.GetValueOrDefault();
+        return double.IsNaN(v) || double.IsInfinity(v) ? 0 : v;
+    }
+
     private static void ReadCpu(IHardware hw, CpuMetrics cpu)
     {
         cpu.Name = hw.Name;
         foreach (var s in hw.Sensors)
         {
-            var v = s.Value.GetValueOrDefault();
+            var v = SafeValue(s);
             switch (s.SensorType)
             {
                 case SensorType.Temperature when s.Name.Contains("Package") || s.Name.Contains("Tctl") || s.Name.Contains("Average"):
@@ -213,7 +220,7 @@ public sealed class HardwareMonitoringService : IHardwareMonitoringService
         gpu.Name = hw.Name;
         foreach (var s in hw.Sensors)
         {
-            var v = s.Value.GetValueOrDefault();
+            var v = SafeValue(s);
             switch (s.SensorType)
             {
                 case SensorType.Temperature when s.Name.Contains("Core"):
@@ -243,7 +250,7 @@ public sealed class HardwareMonitoringService : IHardwareMonitoringService
         double used = 0, available = 0;
         foreach (var s in hw.Sensors)
         {
-            var v = s.Value.GetValueOrDefault();
+            var v = SafeValue(s);
             switch (s.SensorType)
             {
                 case SensorType.Data when s.Name == "Memory Used":
@@ -267,7 +274,7 @@ public sealed class HardwareMonitoringService : IHardwareMonitoringService
         var storage = new StorageMetrics { Name = hw.Name };
         foreach (var s in hw.Sensors)
         {
-            var v = s.Value.GetValueOrDefault();
+            var v = SafeValue(s);
             switch (s.SensorType)
             {
                 case SensorType.Temperature:
@@ -299,14 +306,14 @@ public sealed class HardwareMonitoringService : IHardwareMonitoringService
         {
             foreach (var s in sub.Sensors)
             {
-                var v = s.Value.GetValueOrDefault();
+                var v = SafeValue(s);
                 switch (s.SensorType)
                 {
                     case SensorType.Fan:
                         board.Fans.Add(new SensorReading(s.Name, v, "RPM"));
                         break;
                     case SensorType.Temperature:
-                        board.Sensors.Add(new SensorReading(s.Name, v, "°C"));
+                        board.Sensors.Add(new SensorReading(s.Name, v, "Â°C"));
                         break;
                     case SensorType.Voltage:
                         board.Sensors.Add(new SensorReading(s.Name, v, "V"));

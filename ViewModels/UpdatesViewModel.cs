@@ -7,6 +7,19 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BKKleaner.ViewModels;
 
+public sealed partial class UpdateItemViewModel : ObservableObject
+{
+    public required UpdateItem Item { get; init; }
+    [ObservableProperty] private bool _isSelected = true;
+
+    public string Name => Item.Name;
+    public bool IsInstallable => Item.IsInstallable;
+
+    public string Detail => Item.InfoKey is not null
+        ? Loc.Instance[Item.InfoKey]
+        : $"{Item.CurrentVersion} → {Item.AvailableVersion}";
+}
+
 public sealed partial class UpdatesViewModel : ObservableObject
 {
     private readonly IUpdateService _updates;
@@ -14,8 +27,12 @@ public sealed partial class UpdatesViewModel : ObservableObject
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _statusText;
     [ObservableProperty] private string? _selfUpdateText;
+    [ObservableProperty] private bool _wingetAvailable = true;
+    [ObservableProperty] private bool _hasChecked;
 
-    public ObservableCollection<UpdateItem> Items { get; } = [];
+    public ObservableCollection<UpdateItemViewModel> Items { get; } = [];
+
+    public int InstallableCount => Items.Count(i => i.IsInstallable);
 
     public UpdatesViewModel(IUpdateService updates) => _updates = updates;
 
@@ -26,16 +43,46 @@ public sealed partial class UpdatesViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            StatusText = Loc.Instance["updates.checking"];
-            var items = await _updates.CheckForUpdatesAsync();
-            Items.Clear();
-            foreach (var item in items) Items.Add(item);
-            StatusText = $"{items.Count} {Loc.Instance["updates.found"]}";
+            await RunCheckAsync();
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 
-            var newVersion = await _updates.CheckSelfUpdateAsync();
-            SelfUpdateText = newVersion is null
-                ? Loc.Instance["updates.app_current"]
-                : $"{Loc.Instance["updates.app_available"]}: {newVersion}";
+    private async Task RunCheckAsync()
+    {
+        WingetAvailable = _updates.IsWingetAvailable;
+        StatusText = Loc.Instance["updates.checking"];
+        var found = await _updates.CheckForUpdatesAsync();
+        Items.Clear();
+        foreach (var item in found)
+            Items.Add(new UpdateItemViewModel { Item = item });
+        HasChecked = true;
+        OnPropertyChanged(nameof(InstallableCount));
+        StatusText = $"{InstallableCount} {Loc.Instance["updates.found"]}";
+
+        var newVersion = await _updates.CheckSelfUpdateAsync();
+        SelfUpdateText = newVersion is null
+            ? Loc.Instance["updates.app_current"]
+            : $"{Loc.Instance["updates.app_available"]}: {newVersion}";
+    }
+
+    [RelayCommand]
+    private async Task UpgradeAsync(UpdateItemViewModel item)
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        try
+        {
+            StatusText = $"{Loc.Instance["updates.installing"]}: {item.Name}";
+            var ok = await _updates.UpgradeAsync(item.Item);
+            StatusText = ok
+                ? $"{item.Name} ✓"
+                : $"{item.Name} — {Loc.Instance["updates.failed"]}";
+            if (ok && item.IsInstallable) Items.Remove(item);
+            OnPropertyChanged(nameof(InstallableCount));
         }
         finally
         {
@@ -44,18 +91,27 @@ public sealed partial class UpdatesViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task UpgradeAsync(UpdateItem item)
+    private Task UpgradeSelectedAsync() =>
+        UpgradeManyAsync(Items.Where(i => i.IsInstallable && i.IsSelected).ToList());
+
+    [RelayCommand]
+    private Task UpgradeAllAsync() =>
+        UpgradeManyAsync(Items.Where(i => i.IsInstallable).ToList());
+
+    private async Task UpgradeManyAsync(List<UpdateItemViewModel> targets)
     {
-        if (IsBusy) return;
+        if (IsBusy || targets.Count == 0) return;
         IsBusy = true;
         try
         {
-            StatusText = $"{Loc.Instance["updates.installing"]}: {item.Name}";
-            var ok = await _updates.UpgradeAsync(item);
-            StatusText = ok
-                ? $"{item.Name} ✓"
-                : $"{item.Name} — {Loc.Instance["updates.failed"]}";
-            if (ok) Items.Remove(item);
+            var progress = new Progress<string>(name =>
+                StatusText = $"{Loc.Instance["updates.installing"]}: {name}");
+            var ok = await _updates.UpgradeAllAsync(targets.Select(t => t.Item), progress);
+            StatusText = $"{Loc.Instance["updates.completed"]}: {ok}/{targets.Count}";
+
+            // Refresh the list so applied updates drop off (IsBusy already held here).
+            await RunCheckAsync();
+            StatusText = $"{Loc.Instance["updates.completed"]}: {ok}/{targets.Count}";
         }
         finally
         {

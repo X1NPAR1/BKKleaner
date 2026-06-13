@@ -1,6 +1,7 @@
 <UserControl x:Class="BKKleaner.Views.UpdatesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:BKKleaner.UI"
              xmlns:loc="clr-namespace:BKKleaner.Localization">
     <Grid>
         <Grid.RowDefinitions>
@@ -10,43 +11,87 @@
 
         <StackPanel Grid.Row="0">
             <TextBlock Text="{Binding [updates.title], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H1}"/>
+
             <Border Style="{StaticResource Card}">
                 <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Button Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
-                                Content="{Binding [updates.check], Source={x:Static loc:Loc.Instance}}"
+                    <WrapPanel>
+                        <Button Style="{StaticResource PrimaryButton}" Margin="0,0,8,8"
                                 Command="{Binding CheckCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding [updates.check], Source={x:Static loc:Loc.Instance}}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource PrimaryButton}" Margin="0,0,8,8"
+                                Command="{Binding UpgradeAllCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                                Visibility="{Binding InstallableCount, Converter={StaticResource TrueToVisible}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE896;" FontFamily="Segoe MDL2 Assets" Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding [updates.update_all], Source={x:Static loc:Loc.Instance}}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SecondaryButton}" Margin="0,0,8,8"
+                                Content="{Binding [updates.update_selected], Source={x:Static loc:Loc.Instance}}"
+                                Command="{Binding UpgradeSelectedCommand}"
                                 IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
-                        <Button Style="{StaticResource SecondaryButton}"
+                        <Button Style="{StaticResource SecondaryButton}" Margin="0,0,8,8"
                                 Content="{Binding [updates.drivers], Source={x:Static loc:Loc.Instance}}"
                                 Command="{Binding OpenWindowsUpdateCommand}"/>
-                        <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" Margin="14,0,0,0" Style="{StaticResource Caption}"/>
-                    </StackPanel>
-                    <TextBlock Text="{Binding SelfUpdateText}" Style="{StaticResource Caption}" Margin="0,8,0,0"
+                    </WrapPanel>
+                    <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}" Margin="0,2,0,0"
+                               Visibility="{Binding StatusText, Converter={StaticResource NullToCollapsed}}"/>
+                    <TextBlock Text="{Binding SelfUpdateText}" Style="{StaticResource Caption}" Margin="0,6,0,0"
+                               Foreground="{DynamicResource Brush.Accent}"
                                Visibility="{Binding SelfUpdateText, Converter={StaticResource NullToCollapsed}}"/>
+                    <Border Style="{StaticResource Pill}" Background="{DynamicResource Brush.Warning}" HorizontalAlignment="Left" Margin="0,8,0,0"
+                            Visibility="{Binding WingetAvailable, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
+                        <TextBlock Text="{Binding [updates.no_winget], Source={x:Static loc:Loc.Instance}}" FontSize="11" Foreground="Black" TextWrapping="Wrap"/>
+                    </Border>
                 </StackPanel>
             </Border>
         </StackPanel>
 
-        <Border Grid.Row="1" Style="{StaticResource Card}">
-            <ListBox ItemsSource="{Binding Items}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <DockPanel Margin="0,4">
-                            <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}"
-                                    Content="{Binding [updates.install], Source={x:Static loc:Loc.Instance}}"
-                                    Command="{Binding DataContext.UpgradeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}"/>
-                            <StackPanel>
-                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                                <TextBlock Style="{StaticResource Caption}">
-                                    <Run Text="{Binding Kind, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding CurrentVersion, Mode=OneWay}"/><Run Text=" → "/><Run Text="{Binding AvailableVersion, Mode=OneWay}"/>
-                                </TextBlock>
-                            </StackPanel>
-                        </DockPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </Border>
+        <Grid Grid.Row="1">
+            <Border Style="{StaticResource Card}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="8" Padding="12,10" Margin="0,0,0,8"
+                                        Background="{DynamicResource Brush.CardHover}">
+                                    <DockPanel>
+                                        <CheckBox DockPanel.Dock="Left" IsChecked="{Binding IsSelected}" Margin="0,0,12,0"
+                                                  VerticalAlignment="Center"
+                                                  Visibility="{Binding IsInstallable, Converter={StaticResource BoolToVisibility}}"/>
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Padding="12,6"
+                                                Content="{Binding [updates.install], Source={x:Static loc:Loc.Instance}}"
+                                                Command="{Binding DataContext.UpgradeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Visibility="{Binding IsInstallable, Converter={StaticResource BoolToVisibility}}"/>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Detail}" Style="{StaticResource Caption}"/>
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Empty state -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                        Visibility="{Binding HasChecked, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
+                <TextBlock Text="&#xE895;" FontFamily="Segoe MDL2 Assets" FontSize="42"
+                           Foreground="{DynamicResource Brush.TextSecondary}" HorizontalAlignment="Center" Opacity="0.5"/>
+                <TextBlock Text="{Binding [updates.hint], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"
+                           HorizontalAlignment="Center" Margin="0,12,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <ui:BusyOverlay Grid.RowSpan="2" IsActive="{Binding IsBusy}" Message="{Binding StatusText}"/>
     </Grid>
 </UserControl>

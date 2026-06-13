@@ -22,8 +22,40 @@
     <Grid>
         <!-- System tray icon -->
         <tb:TaskbarIcon x:Name="Tray"
-                        ToolTipText="BKKleaner"
                         DoubleClickCommand="{Binding TrayOpenCommand}">
+            <tb:TaskbarIcon.TrayToolTip>
+                <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1" CornerRadius="9" Padding="14,11">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.35" Color="Black"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock Text="&#xE790;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                       Foreground="{DynamicResource Brush.Accent}" VerticalAlignment="Center"/>
+                            <TextBlock Text="BKKleaner" FontWeight="Bold" FontSize="13" Margin="8,0,0,0"
+                                       Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="60"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding [dashboard.cpu_temp], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource StatKey}" Margin="0,1,16,1"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource StatValue}" Margin="0,1"><Run Text="{Binding TrayCpuTemp, Mode=OneWay}"/><Run Text=" °C"/></TextBlock>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="CPU" Style="{StaticResource StatKey}" Margin="0,1,16,1"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource StatValue}" Margin="0,1"><Run Text="{Binding TrayCpuUsage, Mode=OneWay}"/><Run Text=" %"/></TextBlock>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="GPU" Style="{StaticResource StatKey}" Margin="0,1,16,1"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource StatValue}" Margin="0,1"><Run Text="{Binding TrayGpuUsage, Mode=OneWay}"/><Run Text=" %"/></TextBlock>
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="RAM" Style="{StaticResource StatKey}" Margin="0,1,16,1"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource StatValue}" Margin="0,1"><Run Text="{Binding TrayRamUsage, Mode=OneWay}"/><Run Text=" %"/></TextBlock>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </tb:TaskbarIcon.TrayToolTip>
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="{Binding [tray.open], Source={x:Static loc:Loc.Instance}}"

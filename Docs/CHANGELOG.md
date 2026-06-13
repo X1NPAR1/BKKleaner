@@ -1,5 +1,24 @@
 # Changelog
 
+## v3.6.0 — 2026-06-13
+
+A design, localization and update-engine release.
+
+### Added
+- **Live tray tooltip** — hovering the tray icon shows current CPU temperature, CPU/GPU/RAM usage.
+- **Real update engine** — robust winget scan (`--include-unknown`) of all upgradable apps, with **Update all**, **Update selected** (checkboxes) and per-item update; a clear warning when winget is unavailable; OS-managed components (DirectX) are shown as informational and route to Windows Update instead of failing.
+
+### Changed
+- **Every page redesigned** for a cleaner, more professional, user-friendly look:
+  - Monitoring: section icons, large primary metric, tidy key/value stat rows, per-core load chips.
+  - Optimization: grouped by category with icons, a real on/off **toggle switch** per tweak, an applied-count badge, inline preview.
+  - Temp Cleaner, Updates, Recovery, Benchmark: consistent cards, icons, empty-state placeholders and busy overlays.
+- **Themed context menu** — the tray right-click menu now follows the active theme (no more white-on-white text).
+- **Localization fixes** — previously English-only labels (clean modes, temp categories, update details, recovery kinds, interval units) are now translated in all five languages.
+
+### Fixed
+- Sensor values reading `NaN`/`Infinity` now display as `0` (e.g. CPU frequency).
+
 ## v3.5.2 — 2026-06-13
 
 A major UX, design and feature release.

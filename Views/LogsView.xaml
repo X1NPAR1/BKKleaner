@@ -24,15 +24,15 @@
             </Border>
         </StackPanel>
 
-        <Border Grid.Row="1" Style="{StaticResource Card}">
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8">
             <ListBox ItemsSource="{Binding LogView}" VirtualizingPanel.IsVirtualizing="True">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock FontFamily="Consolas" FontSize="12" TextWrapping="Wrap">
                             <Run Text="{Binding Timestamp, Mode=OneWay, StringFormat={}{0:HH:mm:ss}}" Foreground="{DynamicResource Brush.TextSecondary}"/>
-                            <Run Text="{Binding Level, Mode=OneWay}" Foreground="{DynamicResource Brush.Accent}"/>
-                            <Run Text="{Binding Category, Mode=OneWay}" Foreground="{DynamicResource Brush.TextSecondary}"/>
-                            <Run Text="{Binding Message, Mode=OneWay}"/>
+                            <Run Text="  "/><Run Text="{Binding Level, Mode=OneWay}" Foreground="{DynamicResource Brush.Accent}"/>
+                            <Run Text="  "/><Run Text="{Binding Category, Mode=OneWay}" Foreground="{DynamicResource Brush.TextSecondary}"/>
+                            <Run Text="  "/><Run Text="{Binding Message, Mode=OneWay}"/>
                         </TextBlock>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

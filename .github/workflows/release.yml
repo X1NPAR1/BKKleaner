@@ -29,15 +29,10 @@ jobs:
       - name: Validate publish output
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force artifacts | Out-Null
           foreach ($f in @("BKKleaner.exe", "Localization\en.json", "Localization\tr.json", "logo.ico")) {
             if (-not (Test-Path "publish/win-x64/$f")) { throw "Missing: $f" }
           }
-
-      - name: Package portable zip
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force artifacts | Out-Null
-          Compress-Archive -Path publish/win-x64/* -DestinationPath artifacts/BKKleaner-win-x64.zip
 
       - name: Build installer (.exe via Inno Setup)
         shell: pwsh
@@ -54,14 +49,13 @@ jobs:
           $root = (Get-Location).Path
           wix build Installer\BKKleaner.wxs -ext WixToolset.UI.wixext `
             -d PublishDir="$root\publish\win-x64" -b "$root" -b "$root\Installer" `
-            -arch x64 -o artifacts\BKKleaner-3.5.2.msi
+            -arch x64 -o artifacts\BKKleaner-3.6.0.msi
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/BKKleaner-win-x64.zip
-            artifacts/BKKleaner-Setup-3.5.2.exe
-            artifacts/BKKleaner-3.5.2.msi
+            artifacts/BKKleaner-Setup-3.6.0.exe
+            artifacts/BKKleaner-3.6.0.msi
           generate_release_notes: true
           draft: false

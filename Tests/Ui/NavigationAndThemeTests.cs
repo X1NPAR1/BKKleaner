@@ -49,6 +49,7 @@ public class NavigationAndThemeTests
             settings,
             ramCleaner,
             navigation,
+            monitoring,   // IHardwareMonitoringService
             localization);
     }
 

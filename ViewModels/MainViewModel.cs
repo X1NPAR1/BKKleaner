@@ -1,5 +1,8 @@
 using System.Collections.ObjectModel;
+using System.Windows;
 using BKKleaner.Localization;
+using BKKleaner.Models;
+using BKKleaner.Monitoring;
 using BKKleaner.Security;
 using BKKleaner.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -30,6 +33,12 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _version;
     [ObservableProperty] private string? _trayStatus;
 
+    // Live values surfaced in the tray tooltip.
+    [ObservableProperty] private double _trayCpuTemp;
+    [ObservableProperty] private double _trayCpuUsage;
+    [ObservableProperty] private double _trayGpuUsage;
+    [ObservableProperty] private double _trayRamUsage;
+
     public ObservableCollection<NavigationItem> NavigationItems { get; } = [];
 
     /// <summary>Raised by the tray "Open" action / double-click.</summary>
@@ -54,11 +63,13 @@ public sealed partial class MainViewModel : ObservableObject
         ISettingsService settingsService,
         IRamCleanerService ramCleanerService,
         INavigationService navigation,
+        IHardwareMonitoringService hardwareMonitoring,
         ILocalizationService localization)
     {
         _settings = settingsService;
         _ramCleaner = ramCleanerService;
         navigation.NavigationRequested += (_, key) => NavigateToKey(key);
+        hardwareMonitoring.SnapshotUpdated += OnSnapshot;
 
         // Segoe MDL2 Assets glyphs for a native Windows 11 look.
         NavigationItems.Add(new NavigationItem { Key = "dashboard", Glyph = "", ViewModel = dashboard });
@@ -83,6 +94,17 @@ public sealed partial class MainViewModel : ObservableObject
         };
 
         Navigate(NavigationItems[0]);
+    }
+
+    private void OnSnapshot(object? sender, HardwareSnapshot s)
+    {
+        Application.Current?.Dispatcher.BeginInvoke(() =>
+        {
+            TrayCpuTemp = Math.Round(s.Cpu.TemperatureC, 0);
+            TrayCpuUsage = Math.Round(s.Cpu.UsagePercent, 0);
+            TrayGpuUsage = Math.Round(s.Gpu.UsagePercent, 0);
+            TrayRamUsage = Math.Round(s.Ram.UsagePercent, 0);
+        });
     }
 
     private static string ThisAssemblyVersion()

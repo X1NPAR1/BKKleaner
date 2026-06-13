@@ -18,8 +18,10 @@
 
 ## 📸 Screenshots
 
-| Dashboard (quick actions, system info, top processes) | Settings (themed controls, tray, auto-RAM) | Profiles (8 presets, editable) |
+| Monitoring (live sensors) | Optimization (grouped, toggle switches) | Temp Cleaner (localized, empty-state) |
 |---|---|---|
+| ![Monitoring](Assets/screenshots/v360-monitoring.png) | ![Optimization](Assets/screenshots/v360-optimization.png) | ![Temp Cleaner](Assets/screenshots/v360-temp.png) |
+| Dashboard | Settings | Profiles |
 | ![Dashboard](Assets/screenshots/v352-dashboard.png) | ![Settings](Assets/screenshots/v352-settings.png) | ![Profiles](Assets/screenshots/v352-profiles.png) |
 
 ## ✨ Features

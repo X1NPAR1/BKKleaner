@@ -17,6 +17,12 @@ public sealed class UpdateItem
     public string AvailableVersion { get; init; } = string.Empty;
     public string Source { get; init; } = string.Empty;
     public bool IsSafe { get; init; } = true;
+
+    /// <summary>True for real, winget-installable packages; false for informational rows.</summary>
+    public bool IsInstallable { get; init; } = true;
+
+    /// <summary>Optional localization key describing an informational item (e.g. OS-managed components).</summary>
+    public string? InfoKey { get; init; }
 }
 
 public sealed class LogEntry
