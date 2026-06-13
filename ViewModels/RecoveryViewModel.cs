@@ -25,6 +25,7 @@ public sealed class RecoveryPointViewModel(RecoveryPoint point)
 public sealed partial class RecoveryViewModel : ObservableObject
 {
     private readonly IRecoveryService _recovery;
+    private readonly Services.INotificationService _notifications;
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _statusText;
@@ -34,9 +35,10 @@ public sealed partial class RecoveryViewModel : ObservableObject
     /// <summary>Points grouped by backup session (date-time), newest first.</summary>
     public ICollectionView GroupedPoints { get; }
 
-    public RecoveryViewModel(IRecoveryService recovery)
+    public RecoveryViewModel(IRecoveryService recovery, Services.INotificationService notifications)
     {
         _recovery = recovery;
+        _notifications = notifications;
 
         GroupedPoints = CollectionViewSource.GetDefaultView(Points);
         GroupedPoints.GroupDescriptions.Add(new PropertyGroupDescription(nameof(RecoveryPointViewModel.SessionKey)));
@@ -63,6 +65,7 @@ public sealed partial class RecoveryViewModel : ObservableObject
             StatusText = Loc.Instance["recovery.creating"];
             var created = await _recovery.CreateFullBackupAsync("manual");
             StatusText = $"{Loc.Instance["recovery.created"]}: {created.Count}";
+            _notifications.Notify(Loc.Instance["recovery.title"], StatusText, Services.NotificationLevel.Success);
             Refresh();
         }
         finally

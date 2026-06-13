@@ -23,6 +23,7 @@ public sealed partial class UpdateItemViewModel : ObservableObject
 public sealed partial class UpdatesViewModel : ObservableObject
 {
     private readonly IUpdateService _updates;
+    private readonly INotificationService _notifications;
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _statusText;
@@ -34,7 +35,11 @@ public sealed partial class UpdatesViewModel : ObservableObject
 
     public int InstallableCount => Items.Count(i => i.IsInstallable);
 
-    public UpdatesViewModel(IUpdateService updates) => _updates = updates;
+    public UpdatesViewModel(IUpdateService updates, INotificationService notifications)
+    {
+        _updates = updates;
+        _notifications = notifications;
+    }
 
     [RelayCommand]
     private async Task CheckAsync()
@@ -107,7 +112,8 @@ public sealed partial class UpdatesViewModel : ObservableObject
             var progress = new Progress<string>(name =>
                 StatusText = $"{Loc.Instance["updates.installing"]}: {name}");
             var ok = await _updates.UpgradeAllAsync(targets.Select(t => t.Item), progress);
-            StatusText = $"{Loc.Instance["updates.completed"]}: {ok}/{targets.Count}";
+            _notifications.Notify(Loc.Instance["updates.title"],
+                $"{Loc.Instance["updates.completed"]}: {ok}/{targets.Count}", NotificationLevel.Success);
 
             // Refresh the list so applied updates drop off (IsBusy already held here).
             await RunCheckAsync();

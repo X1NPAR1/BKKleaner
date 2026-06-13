@@ -16,6 +16,8 @@ public sealed class AppSettings
     public bool MinimizeToTray { get; set; } = true;
     public bool CloseToTray { get; set; } = true;
     public bool EnableAnimations { get; set; } = true;
+    public bool StartWithWindows { get; set; }
+    public bool StartMinimized { get; set; }
 
     // Automatic RAM cleaning
     public bool AutoRamCleanEnabled { get; set; }

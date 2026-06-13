@@ -22,6 +22,7 @@ public sealed class AutoRamCleanService : IAutoRamCleanService
     private readonly ILogger<AutoRamCleanService> _logger;
     private readonly ISettingsService _settings;
     private readonly IRamCleanerService _ramCleaner;
+    private readonly INotificationService _notifications;
     private readonly object _gate = new();
 
     private Timer? _timer;
@@ -35,11 +36,12 @@ public sealed class AutoRamCleanService : IAutoRamCleanService
     public event EventHandler<RamCleanResult>? AutoCleanCompleted;
 
     public AutoRamCleanService(ILogger<AutoRamCleanService> logger, ISettingsService settings,
-        IRamCleanerService ramCleaner)
+        IRamCleanerService ramCleaner, INotificationService notifications)
     {
         _logger = logger;
         _settings = settings;
         _ramCleaner = ramCleaner;
+        _notifications = notifications;
         _settings.SettingsChanged += (_, _) => Refresh();
         Refresh();
     }
@@ -99,6 +101,10 @@ public sealed class AutoRamCleanService : IAutoRamCleanService
             LastResult = result;
             _logger.LogInformation("Automatic RAM clean: {Freed:0} MB freed, {Count} processes trimmed",
                 result.FreedMb, result.ProcessesTrimmed);
+            _notifications.Notify(
+                Localization.Loc.Instance["ram.auto_title"],
+                $"{Localization.Loc.Instance["ram.freed"]}: {result.FreedMb:0} MB",
+                NotificationLevel.Info);
             AutoCleanCompleted?.Invoke(this, result);
         }
         catch (Exception ex)

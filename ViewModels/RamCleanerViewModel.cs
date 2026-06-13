@@ -12,6 +12,7 @@ public sealed partial class RamCleanerViewModel : ObservableObject
     private readonly IRamCleanerService _ramCleaner;
     private readonly ISettingsService _settings;
     private readonly IAutoRamCleanService _autoClean;
+    private readonly INotificationService _notifications;
 
     [ObservableProperty] private bool _trimWorkingSets = true;
     [ObservableProperty] private bool _clearStandbyList = true;
@@ -31,11 +32,12 @@ public sealed partial class RamCleanerViewModel : ObservableObject
     public IReadOnlyList<int> AutoIntervals => IAutoRamCleanService.AllowedIntervalsMinutes;
 
     public RamCleanerViewModel(IRamCleanerService ramCleaner, ISettingsService settings,
-        IAutoRamCleanService autoClean)
+        IAutoRamCleanService autoClean, INotificationService notifications)
     {
         _ramCleaner = ramCleaner;
         _settings = settings;
         _autoClean = autoClean;
+        _notifications = notifications;
 
         _autoEnabled = settings.Current.AutoRamCleanEnabled;
         _autoInterval = AutoRamCleanService.SnapInterval(settings.Current.AutoRamCleanIntervalMinutes);
@@ -66,6 +68,8 @@ public sealed partial class RamCleanerViewModel : ObservableObject
             ResultText = $"{Loc.Instance["ram.freed"]}: {FreedMb:0} MB · " +
                          $"{Loc.Instance["ram.trimmed"]}: {result.ProcessesTrimmed} · " +
                          $"{result.UsageBeforePercent:0}% → {result.UsageAfterPercent:0}%";
+            _notifications.Notify(Loc.Instance["ram.title"],
+                $"{Loc.Instance["ram.freed"]}: {FreedMb:0} MB", NotificationLevel.Success);
         }
         finally
         {

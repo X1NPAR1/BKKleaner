@@ -24,10 +24,11 @@
                                 <TextBlock Text="&#xE950;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Brush.Accent}" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding [dashboard.cpu_temp], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Style="{StaticResource Metric}" Margin="0,6,0,0">
+                            <TextBlock Style="{StaticResource Metric}" Margin="0,6,0,0" Foreground="{Binding CpuTemp, Converter={StaticResource HeatBrush}}">
                                 <Run Text="{Binding CpuTemp, Mode=OneWay}"/><Run Text=" °C"/>
                             </TextBlock>
-                            <ProgressBar Style="{StaticResource MetricBar}" Value="{Binding CpuUsage, Mode=OneWay}" Margin="0,10,0,0"/>
+                            <ProgressBar Style="{StaticResource MetricBar}" Value="{Binding CpuUsage, Mode=OneWay}" Margin="0,10,0,0"
+                                         Foreground="{Binding CpuUsage, Converter={StaticResource HeatBrush}}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource Card}">
@@ -36,10 +37,11 @@
                                 <TextBlock Text="&#xF211;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Brush.AccentSecondary}" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding [dashboard.gpu_temp], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Style="{StaticResource Metric}" Margin="0,6,0,0">
+                            <TextBlock Style="{StaticResource Metric}" Margin="0,6,0,0" Foreground="{Binding GpuTemp, Converter={StaticResource HeatBrush}}">
                                 <Run Text="{Binding GpuTemp, Mode=OneWay}"/><Run Text=" °C"/>
                             </TextBlock>
-                            <ProgressBar Style="{StaticResource MetricBar}" Value="{Binding GpuUsage, Mode=OneWay}" Margin="0,10,0,0"/>
+                            <ProgressBar Style="{StaticResource MetricBar}" Value="{Binding GpuUsage, Mode=OneWay}" Margin="0,10,0,0"
+                                         Foreground="{Binding GpuUsage, Converter={StaticResource HeatBrush}}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource Card}">
@@ -48,7 +50,7 @@
                                 <TextBlock Text="&#xEEA0;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Brush.Success}" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding [dashboard.ram_usage], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Style="{StaticResource Metric}" Margin="0,6,0,0">
+                            <TextBlock Style="{StaticResource Metric}" Margin="0,6,0,0" Foreground="{Binding RamUsagePercent, Converter={StaticResource HeatBrush}}">
                                 <Run Text="{Binding RamUsagePercent, Mode=OneWay}"/><Run Text=" %"/>
                             </TextBlock>
                             <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0">
@@ -109,6 +111,47 @@
                         <TextBlock Text="{Binding QuickActionStatus}" Style="{StaticResource Caption}" Margin="0,10,0,0"
                                    Foreground="{DynamicResource Brush.Success}"
                                    Visibility="{Binding QuickActionStatus, Converter={StaticResource NullToCollapsed}}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Cool & Optimize -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <TextBlock Text="&#xE9CA;" Style="{StaticResource SectionIcon}"/>
+                            <TextBlock Text="{Binding [boost.title], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}" Margin="0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding [boost.subtitle], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}" Margin="0,0,0,10"/>
+                        <UniformGrid Columns="4">
+                            <Button Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
+                                    Command="{Binding CoolCpuCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="&#xE9CA;" FontFamily="Segoe MDL2 Assets" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{Binding [boost.coolcpu], Source={x:Static loc:Loc.Instance}}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
+                                    Command="{Binding CoolGpuCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="&#xE9CA;" FontFamily="Segoe MDL2 Assets" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{Binding [boost.coolgpu], Source={x:Static loc:Loc.Instance}}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
+                                    Command="{Binding OptimizeCpuCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="&#xE945;" FontFamily="Segoe MDL2 Assets" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{Binding [boost.optcpu], Source={x:Static loc:Loc.Instance}}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding OptimizeGpuCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="&#xE945;" FontFamily="Segoe MDL2 Assets" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{Binding [boost.optgpu], Source={x:Static loc:Loc.Instance}}"/>
+                                </StackPanel>
+                            </Button>
+                        </UniformGrid>
                     </StackPanel>
                 </Border>
 

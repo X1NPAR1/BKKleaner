@@ -9,6 +9,7 @@ namespace BKKleaner.ViewModels;
 public sealed partial class BenchmarkViewModel : ObservableObject
 {
     private readonly IBenchmarkService _benchmark;
+    private readonly Services.INotificationService _notifications;
     private BenchmarkResult? _before;
 
     [ObservableProperty] private bool _isBusy;
@@ -18,7 +19,11 @@ public sealed partial class BenchmarkViewModel : ObservableObject
     [ObservableProperty] private string? _comparisonText;
     [ObservableProperty] private string? _reportPath;
 
-    public BenchmarkViewModel(IBenchmarkService benchmark) => _benchmark = benchmark;
+    public BenchmarkViewModel(IBenchmarkService benchmark, Services.INotificationService notifications)
+    {
+        _benchmark = benchmark;
+        _notifications = notifications;
+    }
 
     [RelayCommand]
     private async Task RunAsync()
@@ -30,6 +35,8 @@ public sealed partial class BenchmarkViewModel : ObservableObject
             StatusText = Loc.Instance["bench.running"];
             LastResult = await _benchmark.RunAsync("manual");
             StatusText = Loc.Instance["bench.done"];
+            _notifications.Notify(Loc.Instance["bench.title"],
+                $"{Loc.Instance["bench.fps"]}: {LastResult.FpsEstimate:0}", Services.NotificationLevel.Success);
 
             if (_before is not null)
             {

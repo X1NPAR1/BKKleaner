@@ -49,13 +49,13 @@ jobs:
           $root = (Get-Location).Path
           wix build Installer\BKKleaner.wxs -ext WixToolset.UI.wixext `
             -d PublishDir="$root\publish\win-x64" -b "$root" -b "$root\Installer" `
-            -arch x64 -o artifacts\BKKleaner-3.6.1.msi
+            -arch x64 -o artifacts\BKKleaner-3.7.0.msi
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/BKKleaner-Setup-3.6.1.exe
-            artifacts/BKKleaner-3.6.1.msi
+            artifacts/BKKleaner-Setup-3.7.0.exe
+            artifacts/BKKleaner-3.7.0.msi
           generate_release_notes: true
           draft: false

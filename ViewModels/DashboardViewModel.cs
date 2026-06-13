@@ -18,7 +18,10 @@ public sealed partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly ITempCleanerService _tempCleaner;
     private readonly ISystemInfoService _systemInfo;
     private readonly INavigationService _navigation;
+    private readonly ISystemBoostService _boost;
+    private readonly INotificationService _notifications;
     private readonly DispatcherTimer _slowTimer;
+    private readonly Dictionary<string, DateTime> _warningCooldown = [];
 
     [ObservableProperty] private double _cpuTemp;
     [ObservableProperty] private double _cpuUsage;
@@ -57,13 +60,17 @@ public sealed partial class DashboardViewModel : ObservableObject, IDisposable
         IRamCleanerService ramCleaner,
         ITempCleanerService tempCleaner,
         ISystemInfoService systemInfo,
-        INavigationService navigation)
+        INavigationService navigation,
+        ISystemBoostService boost,
+        INotificationService notifications)
     {
         _optimization = optimization;
         _ramCleaner = ramCleaner;
         _tempCleaner = tempCleaner;
         _systemInfo = systemInfo;
         _navigation = navigation;
+        _boost = boost;
+        _notifications = notifications;
         monitoring.SnapshotUpdated += OnSnapshot;
         monitoring.WarningRaised += OnWarning;
 
@@ -127,7 +134,21 @@ public sealed partial class DashboardViewModel : ObservableObject, IDisposable
     private void OnWarning(object? sender, ThresholdWarning warning)
     {
         Application.Current?.Dispatcher.BeginInvoke(() =>
-            ActiveAlert = $"{Loc.Instance[warning.MetricKey]}: {warning.Value:0.#} (≥ {warning.Threshold:0.#})");
+        {
+            ActiveAlert = $"{Loc.Instance[warning.MetricKey]}: {warning.Value:0.#} (≥ {warning.Threshold:0.#})";
+
+            // Escalating, throttled notifications: at most one per metric per 60 seconds.
+            if (_warningCooldown.TryGetValue(warning.MetricKey, out var last) &&
+                (DateTime.Now - last) < TimeSpan.FromSeconds(60))
+                return;
+            _warningCooldown[warning.MetricKey] = DateTime.Now;
+
+            var level = warning.Value >= 100 ? NotificationLevel.Error
+                : warning.Value >= 90 ? NotificationLevel.Error
+                : NotificationLevel.Warning;
+            _notifications.Notify(Loc.Instance["dashboard.title"],
+                $"{Loc.Instance[warning.MetricKey]}: {warning.Value:0.#}", level);
+        });
     }
 
     private static void Push(ObservableCollection<double> series, double value)
@@ -167,6 +188,7 @@ public sealed partial class DashboardViewModel : ObservableObject, IDisposable
         {
             var result = await _ramCleaner.CleanAsync(true, true, false);
             QuickActionStatus = $"{Loc.Instance["ram.freed"]}: {result.FreedMb:0} MB";
+            _notifications.Notify(Loc.Instance["ram.title"], QuickActionStatus, NotificationLevel.Success);
         }
         finally { IsBusy = false; }
     }
@@ -183,6 +205,37 @@ public sealed partial class DashboardViewModel : ObservableObject, IDisposable
             var result = await _tempCleaner.CleanAsync(items, CleanMode.Smart);
             QuickActionStatus = $"{Loc.Instance["temp.cleaned"]}: {result.ItemsRemoved} · " +
                                 $"{result.BytesFreed / 1024.0 / 1024.0:0.#} MB";
+            _notifications.Notify(Loc.Instance["temp.title"], QuickActionStatus, NotificationLevel.Success);
+        }
+        finally { IsBusy = false; }
+    }
+
+    // ---- cool / optimize -----------------------------------------------------
+
+    [RelayCommand] private Task CoolCpuAsync() => RunBoostAsync(BoostKind.CoolCpu);
+    [RelayCommand] private Task CoolGpuAsync() => RunBoostAsync(BoostKind.CoolGpu);
+    [RelayCommand] private Task OptimizeCpuAsync() => RunBoostAsync(BoostKind.OptimizeCpu);
+    [RelayCommand] private Task OptimizeGpuAsync() => RunBoostAsync(BoostKind.OptimizeGpu);
+
+    private async Task RunBoostAsync(BoostKind kind)
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        QuickActionStatus = Loc.Instance["boost.running"];
+        try
+        {
+            var r = await _boost.BoostAsync(kind);
+            var msg = $"{Loc.Instance["boost.done"]}: {r.UsageBefore:0}% → {r.UsageAfter:0}% · " +
+                      $"{r.ProcessesTrimmed} {Loc.Instance["boost.trimmed"]}";
+            QuickActionStatus = msg;
+            var titleKey = kind switch
+            {
+                BoostKind.CoolCpu => "boost.coolcpu",
+                BoostKind.CoolGpu => "boost.coolgpu",
+                BoostKind.OptimizeCpu => "boost.optcpu",
+                _ => "boost.optgpu"
+            };
+            _notifications.Notify(Loc.Instance[titleKey], msg, NotificationLevel.Success);
         }
         finally { IsBusy = false; }
     }

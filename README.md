@@ -18,11 +18,11 @@
 
 ## 📸 Screenshots
 
-| Monitoring (live sensors) | Optimization (grouped, toggle switches) | Temp Cleaner (localized, empty-state) |
+| Dashboard (cool & optimize, heat colors) | Profiles (preview panel, create/delete) | Monitoring (live sensors) |
 |---|---|---|
-| ![Monitoring](Assets/screenshots/v360-monitoring.png) | ![Optimization](Assets/screenshots/v360-optimization.png) | ![Temp Cleaner](Assets/screenshots/v360-temp.png) |
-| Dashboard | Settings | Profiles |
-| ![Dashboard](Assets/screenshots/v352-dashboard.png) | ![Settings](Assets/screenshots/v352-settings.png) | ![Profiles](Assets/screenshots/v352-profiles.png) |
+| ![Dashboard](Assets/screenshots/v370-dashboard.png) | ![Profiles](Assets/screenshots/v370-profiles.png) | ![Monitoring](Assets/screenshots/v360-monitoring.png) |
+| Optimization (grouped, toggles) | Settings (tray, startup, auto-RAM) | Recovery (grouped by date-time) |
+| ![Optimization](Assets/screenshots/v360-optimization.png) | ![Settings](Assets/screenshots/v352-settings.png) | ![Recovery](Assets/screenshots/v360-recovery.png) |
 
 ## ✨ Features
 
@@ -31,10 +31,13 @@
 | 📊 **Dashboard** | CPU/GPU temperature, RAM usage & MHz, disk health, FPS estimate, health & optimization scores, live graphs, threshold alerts |
 | 📡 **Monitoring** | Real-time CPU (temp/usage/frequency/voltage/per-core), GPU (temp/usage/VRAM/fan/watt), RAM, SMART storage, motherboard sensors & fans — with CSV export |
 | ⚡ **Optimization** | 14 safe-only Windows tweaks: High-Performance / **Ultimate** / Power-Saver plans, Game Mode, background apps, startup manager, CPU scheduling, latency & Nagle, hardware GPU scheduling, performance visual effects, menu delay, transparency, telemetry — every action has **preview, undo and automatic registry backup** |
-| 🎮 **Profiles** | 8 **editable** gaming profiles (Competitive FPS, Maximum FPS, **Ultimate Performance**, Balanced, Streaming, Low-End PC, Laptop, **Battery Saver**) with preview, rollback and before/after benchmark comparison |
+| 🎮 **Profiles** | 8 built-in gaming profiles (Competitive FPS, Maximum FPS, **Ultimate Performance**, Balanced, Streaming, Low-End PC, Laptop, **Battery Saver**) — **editable**, with a **preview panel**, **create/delete your own** custom profiles, rollback and before/after benchmark comparison |
 | 🧠 **RAM Cleaner** | Working-set trimming, standby list purge, file-cache flush — protected system processes are never touched — plus an **automatic scheduler** (5–120 min) |
-| 🖥️ **System tray** | Minimize/close to tray with a quick menu (Open · Clean RAM · Exit); runs quietly in the background |
-| ✨ **Animations** | Smooth page transitions, button micro-interactions and loading overlays — fully toggleable |
+| ❄️ **Cool & Optimize** | One-click Cool/Optimize CPU & GPU — lowers temperature and background load **without disturbing your game** (no in-game performance loss) |
+| 🔔 **Notifications** | In-app toasts + Windows notifications on every operation; auto-dismiss after 5s or close with ✕ |
+| 🌡️ **Heat coloring** | CPU/GPU temp & usage turn orange → red → dark red past 80/90/100 °C/%, with escalating alerts |
+| 🖥️ **System tray** | Minimize/close to tray, live hover tooltip (CPU temp, CPU/GPU/RAM), quick menu, start-with-Windows |
+| ✨ **Animations** | Smooth page transitions, button micro-interactions, sliding toasts and loading overlays — fully toggleable |
 | 🗑️ **Temp Cleaner** | Windows temp, browser caches, DirectX shader caches, logs, crash dumps — Smart / Deep / Preview modes with **quarantine-based restore** |
 | ⏪ **Recovery** | Automatic restore point + registry backup + config backup + snapshot before every optimization; one-click restore |
 | 🏁 **Benchmark** | CPU single/multi-thread, memory bandwidth, timer latency, FPS estimate — comparison reports in Markdown |
@@ -93,9 +96,9 @@ Requirements: .NET SDK 9/10, Windows 10/11. Inno Setup 6 (optional, for the inst
 dotnet test BKKleaner.slnx
 ```
 
-94 tests: unit (services, parsers, safety guards, auto-RAM interval snapping, default-language resolution),
-integration (temp cleaner quarantine/restore, recovery, profile editing), UI logic (navigation, theme
-switching, localization) and performance guards.
+107 tests: unit (services, parsers, safety guards, auto-RAM interval snapping, default-language resolution,
+converters), integration (temp cleaner quarantine/restore, recovery, profile editing/create/delete),
+UI logic (navigation, theme switching, localization) and performance guards.
 
 ## 🏗️ Architecture
 

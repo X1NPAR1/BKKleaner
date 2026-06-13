@@ -23,6 +23,8 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _minimizeToTray;
     [ObservableProperty] private bool _closeToTray;
     [ObservableProperty] private bool _enableAnimations;
+    [ObservableProperty] private bool _startWithWindows;
+    [ObservableProperty] private bool _startMinimized;
     [ObservableProperty] private bool _autoRamCleanEnabled;
     [ObservableProperty] private int _autoRamCleanInterval;
     [ObservableProperty] private string? _validationText;
@@ -50,6 +52,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         _minimizeToTray = current.MinimizeToTray;
         _closeToTray = current.CloseToTray;
         _enableAnimations = current.EnableAnimations;
+        _startWithWindows = current.StartWithWindows;
+        _startMinimized = current.StartMinimized;
         _autoRamCleanEnabled = current.AutoRamCleanEnabled;
         _autoRamCleanInterval = AutoRamCleanService.SnapInterval(current.AutoRamCleanIntervalMinutes);
     }
@@ -77,6 +81,18 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     partial void OnAutoRamCleanIntervalChanged(int value) =>
         _settings.Update(s => s.AutoRamCleanIntervalMinutes = value);
+
+    partial void OnStartWithWindowsChanged(bool value)
+    {
+        _settings.Update(s => s.StartWithWindows = value);
+        StartupManager.Set(value, StartMinimized);
+    }
+
+    partial void OnStartMinimizedChanged(bool value)
+    {
+        _settings.Update(s => s.StartMinimized = value);
+        if (StartWithWindows) StartupManager.Set(true, value);
+    }
 
     [RelayCommand]
     private void Save()

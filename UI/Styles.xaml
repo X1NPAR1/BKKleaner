@@ -10,6 +10,8 @@
     <ui:EmptyToVisibleConverter x:Key="EmptyToVisible"/>
     <ui:MinutesLabelConverter x:Key="MinutesLabel"/>
     <ui:EnumLabelConverter x:Key="EnumLabel"/>
+    <ui:ScoreLabelConverter x:Key="ScoreLabel"/>
+    <ui:HeatBrushConverter x:Key="HeatBrush"/>
     <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
 
     <!-- ============================ Typography ============================ -->

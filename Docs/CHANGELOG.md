@@ -1,5 +1,22 @@
 # Changelog
 
+## v3.7.0 — 2026-06-13
+
+A big features-and-polish release.
+
+### Added
+- **Notifications everywhere** — every operation (RAM/temp clean, backup, optimization, profile apply, updates, auto-clean, cooling) now raises both an in-app toast (top-right) and a Windows tray notification. Toasts auto-dismiss after 5 seconds or can be closed with ✕.
+- **Cool & Optimize** — new Dashboard buttons (Cool CPU/GPU, Optimize CPU/GPU) that safely lower temperature and background load **without disturbing the foreground app/game**, so there is no in-game performance loss. They trim background working sets, deprioritize background processes and purge the standby list — never touching the focused app or protected system processes.
+- **Live heat coloring + escalating alerts** — CPU/GPU temperature and CPU/GPU/RAM usage now turn orange (80–90), red (90–100) and dark red (100+). Crossing the thresholds raises a throttled Windows + in-app warning.
+- **Profile preview panel** — Preview now opens a dedicated overlay panel listing the exact changes, instead of squashing the card.
+- **Custom profiles** — create your own profiles (name + chosen optimizations) and delete user-created ones. Built-in profiles can still be edited and reset.
+- **Start with Windows** — a Settings option to launch BKKleaner at login, optionally minimized to the tray.
+
+### Changed
+- **Power plans are mutually exclusive** — selecting one plan (e.g. Ultimate) automatically turns the others off, in both the engine and the UI toggles.
+- **Readable benchmark scores** — CPU single/multi-thread scores are shown in a compact, human-friendly form (e.g. `25.4M`) instead of raw digit strings.
+- **Full localization pass** — benchmark labels, boost buttons, profile dialogs, settings, interval units and all remaining UI strings are now translated in every language.
+
 ## v3.6.1 — 2026-06-13
 
 ### Changed

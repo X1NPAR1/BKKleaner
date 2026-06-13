@@ -10,6 +10,7 @@ namespace BKKleaner.ViewModels;
 public sealed partial class TempCleanerViewModel : ObservableObject
 {
     private readonly ITempCleanerService _tempCleaner;
+    private readonly INotificationService _notifications;
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _statusText;
@@ -20,9 +21,10 @@ public sealed partial class TempCleanerViewModel : ObservableObject
     public ObservableCollection<string> Snapshots { get; } = [];
     public IReadOnlyList<CleanMode> Modes { get; } = [CleanMode.Smart, CleanMode.Deep, CleanMode.Preview];
 
-    public TempCleanerViewModel(ITempCleanerService tempCleaner)
+    public TempCleanerViewModel(ITempCleanerService tempCleaner, INotificationService notifications)
     {
         _tempCleaner = tempCleaner;
+        _notifications = notifications;
         RefreshSnapshots();
     }
 
@@ -63,6 +65,9 @@ public sealed partial class TempCleanerViewModel : ObservableObject
             StatusText = $"{Loc.Instance["temp.cleaned"]}: {result.ItemsRemoved} · " +
                          $"{Loc.Instance["temp.skipped"]}: {result.ItemsSkipped} · " +
                          $"{result.BytesFreed / 1024.0 / 1024.0:0.#} MB";
+            _notifications.Notify(Loc.Instance["temp.title"],
+                $"{Loc.Instance["temp.cleaned"]}: {result.ItemsRemoved} · {result.BytesFreed / 1024.0 / 1024.0:0.#} MB",
+                NotificationLevel.Success);
             Items.Clear();
             TotalSizeMb = 0;
             RefreshSnapshots();

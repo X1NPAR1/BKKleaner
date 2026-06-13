@@ -3,12 +3,13 @@ using BKKleaner.Benchmark;
 using BKKleaner.Localization;
 using BKKleaner.Models;
 using BKKleaner.Optimization;
+using BKKleaner.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace BKKleaner.ViewModels;
 
-/// <summary>A single optimization action shown as a checkbox in the profile editor.</summary>
+/// <summary>A single optimization action shown as a checkbox in the profile editor / creator.</summary>
 public sealed partial class ProfileActionToggle : ObservableObject
 {
     public required string ActionId { get; init; }
@@ -25,13 +26,14 @@ public sealed partial class ProfileItemViewModel : ObservableObject
     public GamingProfile Profile { get; }
 
     [ObservableProperty] private bool _isActive;
-    [ObservableProperty] private string? _previewText;
     [ObservableProperty] private bool _isEditing;
 
     public ObservableCollection<ProfileActionToggle> EditableActions { get; } = [];
 
-    public string Name => Loc.Instance[Profile.NameKey];
-    public string Description => Loc.Instance[Profile.DescriptionKey];
+    public string Name => Profile.IsBuiltIn ? Loc.Instance[Profile.NameKey] : Profile.CustomName ?? "Custom";
+    public string Description => Profile.IsBuiltIn ? Loc.Instance[Profile.DescriptionKey] : Loc.Instance["profile.custom.desc"];
+    public bool CanDelete => !Profile.IsBuiltIn;
+    public bool CanReset => Profile.IsBuiltIn;
     public int ActionCount => Profile.ActionIds.Count;
 
     public ProfileItemViewModel(GamingProfile profile, ProfilesViewModel parent,
@@ -49,16 +51,14 @@ public sealed partial class ProfileItemViewModel : ObservableObject
             });
     }
 
-    [RelayCommand]
-    private Task ApplyAsync() => _parent.ApplyProfileAsync(this);
-
-    [RelayCommand]
-    private Task PreviewAsync() => _parent.PreviewProfileAsync(this);
+    [RelayCommand] private Task ApplyAsync() => _parent.ApplyProfileAsync(this);
+    [RelayCommand] private Task PreviewAsync() => _parent.PreviewProfileAsync(this);
+    [RelayCommand] private void Delete() => _parent.DeleteProfile(this);
 
     [RelayCommand]
     private void ToggleEdit()
     {
-        if (IsEditing) { SyncTogglesFromProfile(); }
+        if (IsEditing) SyncTogglesFromProfile();
         IsEditing = !IsEditing;
     }
 
@@ -69,8 +69,7 @@ public sealed partial class ProfileItemViewModel : ObservableObject
         IsEditing = false;
     }
 
-    [RelayCommand]
-    private void ResetEdit() => _parent.ResetProfile(this);
+    [RelayCommand] private void ResetEdit() => _parent.ResetProfile(this);
 
     public IEnumerable<string> SelectedActionIds =>
         EditableActions.Where(a => a.IsIncluded).Select(a => a.ActionId);
@@ -94,30 +93,46 @@ public sealed partial class ProfilesViewModel : ObservableObject
 {
     private readonly IProfileService _profiles;
     private readonly IBenchmarkService _benchmark;
+    private readonly INotificationService _notifications;
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _statusText;
     [ObservableProperty] private string? _comparisonText;
     [ObservableProperty] private bool _runBenchmarkComparison = true;
 
+    // Preview panel (overlay)
+    [ObservableProperty] private bool _isPreviewOpen;
+    [ObservableProperty] private string? _previewTitle;
+    [ObservableProperty] private string? _previewText;
+
+    // Create panel (overlay)
+    [ObservableProperty] private bool _isCreateOpen;
+    [ObservableProperty] private string _newProfileName = string.Empty;
+
     public ObservableCollection<ProfileItemViewModel> Profiles { get; } = [];
+    public ObservableCollection<ProfileActionToggle> NewProfileActions { get; } = [];
 
     public ProfilesViewModel(IProfileService profiles, IBenchmarkService benchmark,
-        ILocalizationService localization)
+        INotificationService notifications, ILocalizationService localization)
     {
         _profiles = profiles;
         _benchmark = benchmark;
-        foreach (var profile in profiles.Profiles)
-            Profiles.Add(new ProfileItemViewModel(profile, this, profiles.AvailableActions));
+        _notifications = notifications;
+        RebuildProfiles();
 
-        profiles.ProfilesChanged += (_, _) =>
-        {
-            foreach (var p in Profiles) p.SyncTogglesFromProfile();
-        };
+        _profiles.ProfilesChanged += (_, _) => RebuildProfiles();
         localization.LanguageChanged += (_, _) =>
         {
             foreach (var p in Profiles) p.RefreshLocalization();
+            foreach (var a in NewProfileActions) a.RefreshLocalization();
         };
+    }
+
+    private void RebuildProfiles()
+    {
+        Profiles.Clear();
+        foreach (var profile in _profiles.Profiles)
+            Profiles.Add(new ProfileItemViewModel(profile, this, _profiles.AvailableActions));
     }
 
     public async Task ApplyProfileAsync(ProfileItemViewModel item)
@@ -149,6 +164,8 @@ public sealed partial class ProfilesViewModel : ObservableObject
             }
 
             StatusText = ok ? Loc.Instance["profiles.applied"] : Loc.Instance["profiles.failed"];
+            _notifications.Notify(Loc.Instance["profiles.title"], $"{item.Name}: {StatusText}",
+                ok ? NotificationLevel.Success : NotificationLevel.Warning);
         }
         finally
         {
@@ -159,9 +176,14 @@ public sealed partial class ProfilesViewModel : ObservableObject
     public async Task PreviewProfileAsync(ProfileItemViewModel item)
     {
         var previews = await _profiles.PreviewAsync(item.Profile.Id);
-        item.PreviewText = string.Join(Environment.NewLine,
-            previews.SelectMany(p => p.Changes));
+        PreviewTitle = item.Name;
+        PreviewText = previews.Count == 0
+            ? Loc.Instance["profiles.no_changes"]
+            : string.Join(Environment.NewLine, previews.SelectMany(p => p.Changes));
+        IsPreviewOpen = true;
     }
+
+    [RelayCommand] private void ClosePreview() => IsPreviewOpen = false;
 
     public void SaveProfileEdit(ProfileItemViewModel item)
     {
@@ -175,6 +197,39 @@ public sealed partial class ProfilesViewModel : ObservableObject
         _profiles.ResetProfile(item.Profile.Id);
         item.SyncTogglesFromProfile();
         StatusText = $"{item.Name}: {Loc.Instance["profiles.reset"]}";
+    }
+
+    public void DeleteProfile(ProfileItemViewModel item)
+    {
+        if (_profiles.DeleteProfile(item.Profile.Id))
+            StatusText = $"{item.Name}: {Loc.Instance["profiles.deleted"]}";
+    }
+
+    // ---- create panel --------------------------------------------------------
+
+    [RelayCommand]
+    private void OpenCreate()
+    {
+        NewProfileName = string.Empty;
+        NewProfileActions.Clear();
+        foreach (var action in _profiles.AvailableActions)
+            NewProfileActions.Add(new ProfileActionToggle { ActionId = action.Id, TitleKey = action.TitleKey });
+        IsCreateOpen = true;
+    }
+
+    [RelayCommand] private void CancelCreate() => IsCreateOpen = false;
+
+    [RelayCommand]
+    private void ConfirmCreate()
+    {
+        var selected = NewProfileActions.Where(a => a.IsIncluded).Select(a => a.ActionId).ToList();
+        if (selected.Count == 0) { StatusText = Loc.Instance["profiles.pick_action"]; return; }
+
+        var name = string.IsNullOrWhiteSpace(NewProfileName) ? Loc.Instance["profiles.custom_default"] : NewProfileName;
+        _profiles.CreateCustomProfile(name, selected);
+        IsCreateOpen = false;
+        StatusText = $"{name}: {Loc.Instance["profiles.created"]}";
+        _notifications.Notify(Loc.Instance["profiles.title"], StatusText, NotificationLevel.Success);
     }
 
     [RelayCommand]

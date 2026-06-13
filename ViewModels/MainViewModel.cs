@@ -26,6 +26,12 @@ public sealed partial class MainViewModel : ObservableObject
 {
     private readonly ISettingsService _settings;
     private readonly IRamCleanerService _ramCleaner;
+    private readonly INotificationService _notifications;
+
+    public System.Collections.ObjectModel.ReadOnlyObservableCollection<ToastNotification> Toasts => _notifications.Active;
+
+    [RelayCommand]
+    private void DismissToast(ToastNotification toast) => _notifications.Dismiss(toast);
 
     [ObservableProperty] private object? _currentViewModel;
     [ObservableProperty] private string _adminBadge;
@@ -64,10 +70,12 @@ public sealed partial class MainViewModel : ObservableObject
         IRamCleanerService ramCleanerService,
         INavigationService navigation,
         IHardwareMonitoringService hardwareMonitoring,
+        INotificationService notifications,
         ILocalizationService localization)
     {
         _settings = settingsService;
         _ramCleaner = ramCleanerService;
+        _notifications = notifications;
         navigation.NavigationRequested += (_, key) => NavigateToKey(key);
         hardwareMonitoring.SnapshotUpdated += OnSnapshot;
 

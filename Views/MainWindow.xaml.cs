@@ -11,11 +11,24 @@ public partial class MainWindow : Window
     private readonly ISettingsService _settings;
     private bool _exitRequested;
 
-    public MainWindow(MainViewModel viewModel, ISettingsService settings)
+    public MainWindow(MainViewModel viewModel, ISettingsService settings, INotificationService notifications)
     {
         InitializeComponent();
         _settings = settings;
         DataContext = viewModel;
+
+        // Route Windows balloon notifications through the tray icon.
+        notifications.WindowsNotifier = (title, message, level) =>
+            Dispatcher.BeginInvoke(() =>
+            {
+                var icon = level switch
+                {
+                    NotificationLevel.Warning => Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Warning,
+                    NotificationLevel.Error => Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Error,
+                    _ => Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Info
+                };
+                Tray.ShowBalloonTip(title, message, icon);
+            });
 
         viewModel.ShowRequested += (_, _) => RestoreFromTray();
         viewModel.ExitRequested += (_, _) =>

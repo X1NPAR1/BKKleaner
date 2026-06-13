@@ -14,9 +14,11 @@ public sealed class ProfileService : IProfileService
     private readonly IRecoveryService _recovery;
     private readonly string _statePath;
     private readonly string _customizationPath;
+    private readonly string _customProfilesPath;
     private readonly Dictionary<string, List<string>> _defaultActions;
+    private readonly List<GamingProfile> _profiles;
 
-    public IReadOnlyList<GamingProfile> Profiles { get; }
+    public IReadOnlyList<GamingProfile> Profiles => _profiles;
     public GamingProfile? ActiveProfile => Profiles.FirstOrDefault(p => p.IsActive);
     public IReadOnlyList<OptimizationAction> AvailableActions => _optimization.Actions;
 
@@ -30,8 +32,9 @@ public sealed class ProfileService : IProfileService
         _recovery = recovery;
         _statePath = Path.Combine(settings.DataDirectory, "active-profile.json");
         _customizationPath = Path.Combine(settings.DataDirectory, "profile-customizations.json");
+        _customProfilesPath = Path.Combine(settings.DataDirectory, "custom-profiles.json");
 
-        Profiles =
+        _profiles =
         [
             new()
             {
@@ -76,10 +79,78 @@ public sealed class ProfileService : IProfileService
         ];
 
         // Snapshot the built-in action sets so a profile can be reset later.
-        _defaultActions = Profiles.ToDictionary(p => p.Id, p => new List<string>(p.ActionIds));
+        _defaultActions = _profiles.ToDictionary(p => p.Id, p => new List<string>(p.ActionIds));
 
+        LoadCustomProfiles();
         ApplyCustomizations();
         RestoreActiveState();
+    }
+
+    // ---- custom profiles ------------------------------------------------------
+
+    public GamingProfile CreateCustomProfile(string name, IEnumerable<string> actionIds)
+    {
+        var valid = actionIds.Where(id => _optimization.Actions.Any(a => a.Id == id)).Distinct().ToList();
+        var profile = new GamingProfile
+        {
+            Id = "custom_" + Guid.NewGuid().ToString("N")[..8],
+            NameKey = string.Empty,
+            DescriptionKey = "profile.custom.desc",
+            ActionIds = valid,
+            IsBuiltIn = false,
+            CustomName = string.IsNullOrWhiteSpace(name) ? "Custom" : name.Trim()
+        };
+        _profiles.Add(profile);
+        SaveCustomProfiles();
+        _logger.LogInformation("Custom profile created: {Name} ({Count} actions)", profile.CustomName, valid.Count);
+        ProfilesChanged?.Invoke(this, EventArgs.Empty);
+        return profile;
+    }
+
+    public bool DeleteProfile(string profileId)
+    {
+        var profile = _profiles.FirstOrDefault(p => p.Id == profileId);
+        if (profile is null || profile.IsBuiltIn) return false;
+
+        _profiles.Remove(profile);
+        SaveCustomProfiles();
+        _logger.LogInformation("Custom profile deleted: {Id}", profileId);
+        ProfilesChanged?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    private void SaveCustomProfiles()
+    {
+        var custom = _profiles.Where(p => !p.IsBuiltIn)
+            .Select(p => new CustomProfileDefinition { Id = p.Id, Name = p.CustomName ?? "Custom", ActionIds = p.ActionIds })
+            .ToList();
+        File.WriteAllText(_customProfilesPath, JsonConvert.SerializeObject(custom, Formatting.Indented));
+    }
+
+    private void LoadCustomProfiles()
+    {
+        try
+        {
+            if (!File.Exists(_customProfilesPath)) return;
+            var defs = JsonConvert.DeserializeObject<List<CustomProfileDefinition>>(File.ReadAllText(_customProfilesPath));
+            if (defs is null) return;
+            foreach (var d in defs)
+            {
+                _profiles.Add(new GamingProfile
+                {
+                    Id = d.Id,
+                    NameKey = string.Empty,
+                    DescriptionKey = "profile.custom.desc",
+                    ActionIds = d.ActionIds.Where(a => _optimization.Actions.Any(x => x.Id == a)).ToList(),
+                    IsBuiltIn = false,
+                    CustomName = d.Name
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not load custom profiles");
+        }
     }
 
     public async Task<IReadOnlyList<ActionPreview>> PreviewAsync(string profileId)
@@ -172,11 +243,14 @@ public sealed class ProfileService : IProfileService
 
     private void SaveCustomizations()
     {
-        // Only persist profiles that differ from their built-in action set.
+        // Only persist built-in profiles whose action set differs from the default.
         var custom = Profiles
-            .Where(p => !p.ActionIds.SequenceEqual(_defaultActions[p.Id]))
+            .Where(p => p.IsBuiltIn && _defaultActions.TryGetValue(p.Id, out var def) && !p.ActionIds.SequenceEqual(def))
             .ToDictionary(p => p.Id, p => p.ActionIds);
         File.WriteAllText(_customizationPath, JsonConvert.SerializeObject(custom, Formatting.Indented));
+
+        // Custom profiles persist separately (their action set IS their definition).
+        SaveCustomProfiles();
     }
 
     private void ApplyCustomizations()

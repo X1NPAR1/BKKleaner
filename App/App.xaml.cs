@@ -53,6 +53,9 @@ public partial class App : Application
         settings.SettingsChanged += (_, _) =>
             UI.AnimationSettings.Enabled = settings.Current.EnableAnimations;
 
+        // Keep the "start with Windows" registry entry in sync with the setting.
+        StartupManager.Set(settings.Current.StartWithWindows, settings.Current.StartMinimized);
+
         // Start monitoring before the dashboard appears.
         _services.GetRequiredService<IHardwareMonitoringService>().Start();
 
@@ -61,7 +64,10 @@ public partial class App : Application
 
         var window = _services.GetRequiredService<MainWindow>();
         MainWindow = window;
-        window.Show();
+
+        // When launched at login with --minimized, start hidden in the tray.
+        var startHidden = e.Args.Contains("--minimized") && settings.Current.MinimizeToTray;
+        if (!startHidden) window.Show();
 
         // webhook.txt automation runs after launch, off the UI thread.
         _ = ProcessWebhookFileAsync();
@@ -124,6 +130,8 @@ public partial class App : Application
         services.AddSingleton<IAutoRamCleanService, AutoRamCleanService>();
         services.AddSingleton<ISystemInfoService, SystemInfoService>();
         services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<INotificationService, NotificationService>();
+        services.AddSingleton<ISystemBoostService, SystemBoostService>();
 
         // ViewModels
         services.AddSingleton<DashboardViewModel>();

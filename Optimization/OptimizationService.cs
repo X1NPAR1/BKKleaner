@@ -107,6 +107,7 @@ public sealed class OptimizationService : IOptimizationService
     };
 
     public IReadOnlyList<OptimizationAction> Actions => _actions;
+    public IReadOnlyCollection<string> PowerPlanActionIds => PowerPlanActions.Keys;
 
     public OptimizationService(ILogger<OptimizationService> logger, ISecurityService security,
         IRecoveryService recovery, ISettingsService settings)
@@ -177,6 +178,13 @@ public sealed class OptimizationService : IOptimizationService
             return false;
         }
         if (action.IsApplied) return true;
+
+        // Power plans are mutually exclusive: applying one reverts any other active plan.
+        if (PowerPlanActions.ContainsKey(actionId))
+        {
+            foreach (var otherId in PowerPlanActions.Keys.Where(id => id != actionId && _undoStore.ContainsKey(id)).ToList())
+                await UndoAsync(otherId, ct).ConfigureAwait(false);
+        }
 
         var result = await _security.ExecuteSafeAsync(AppPermission.ModifyRegistry, $"Apply:{actionId}", async () =>
         {

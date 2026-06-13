@@ -60,6 +60,11 @@
                               Content="{Binding [settings.close_tray], Source={x:Static loc:Loc.Instance}}"/>
                     <CheckBox IsChecked="{Binding EnableAnimations}"
                               Content="{Binding [settings.animations], Source={x:Static loc:Loc.Instance}}"/>
+                    <CheckBox IsChecked="{Binding StartWithWindows}"
+                              Content="{Binding [settings.start_with_windows], Source={x:Static loc:Loc.Instance}}"/>
+                    <CheckBox IsChecked="{Binding StartMinimized}" Margin="24,5,0,5"
+                              IsEnabled="{Binding StartWithWindows}"
+                              Content="{Binding [settings.start_minimized], Source={x:Static loc:Loc.Instance}}"/>
                 </StackPanel>
             </Border>
 

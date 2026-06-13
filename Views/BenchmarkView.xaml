@@ -35,25 +35,25 @@
                         <TextBlock Text="{Binding [bench.last_result], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource H2}"/>
                         <UniformGrid Columns="4">
                             <StackPanel Margin="0,0,12,0">
-                                <TextBlock Text="FPS (est.)" Style="{StaticResource Caption}"/>
+                                <TextBlock Text="{Binding [bench.fps], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
                                 <TextBlock Text="{Binding FpsEstimate}" Style="{StaticResource Metric}" Foreground="{DynamicResource Brush.Accent}"/>
                             </StackPanel>
                             <StackPanel Margin="0,0,12,0">
-                                <TextBlock Text="CPU ST" Style="{StaticResource Caption}"/>
-                                <TextBlock Text="{Binding CpuSingleThreadScore}" Style="{StaticResource Metric}"/>
+                                <TextBlock Text="{Binding [bench.cpu_st], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
+                                <TextBlock Text="{Binding CpuSingleThreadScore, Converter={StaticResource ScoreLabel}}" Style="{StaticResource Metric}"/>
                             </StackPanel>
                             <StackPanel Margin="0,0,12,0">
-                                <TextBlock Text="CPU MT" Style="{StaticResource Caption}"/>
-                                <TextBlock Text="{Binding CpuMultiThreadScore}" Style="{StaticResource Metric}"/>
+                                <TextBlock Text="{Binding [bench.cpu_mt], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
+                                <TextBlock Text="{Binding CpuMultiThreadScore, Converter={StaticResource ScoreLabel}}" Style="{StaticResource Metric}"/>
                             </StackPanel>
                             <StackPanel>
-                                <TextBlock Text="RAM MB/s" Style="{StaticResource Caption}"/>
-                                <TextBlock Text="{Binding MemoryBandwidthMbps}" Style="{StaticResource Metric}"/>
+                                <TextBlock Text="{Binding [bench.mem], Source={x:Static loc:Loc.Instance}}" Style="{StaticResource Caption}"/>
+                                <TextBlock Style="{StaticResource Metric}"><Run Text="{Binding MemoryBandwidthMbps, Mode=OneWay, StringFormat={}{0:N0}}"/></TextBlock>
                             </StackPanel>
                         </UniformGrid>
                         <Border Background="{DynamicResource Brush.CardHover}" CornerRadius="8" Padding="12" Margin="0,12,0,0">
                             <TextBlock Style="{StaticResource Caption}">
-                                <Run Text="Latency: "/><Run Text="{Binding LatencyMs, Mode=OneWay}"/><Run Text=" ms   ·   CPU load "/><Run Text="{Binding CpuLoadPercent, Mode=OneWay}"/><Run Text="%   ·   RAM "/><Run Text="{Binding RamUsagePercent, Mode=OneWay}"/><Run Text="%"/>
+                                <Run Text="{Binding [bench.latency], Mode=OneWay, Source={x:Static loc:Loc.Instance}}"/><Run Text=": "/><Run Text="{Binding LatencyMs, Mode=OneWay}"/><Run Text=" ms   ·   "/><Run Text="{Binding [bench.cpu_load], Mode=OneWay, Source={x:Static loc:Loc.Instance}}"/><Run Text=" "/><Run Text="{Binding CpuLoadPercent, Mode=OneWay}"/><Run Text="%   ·   RAM "/><Run Text="{Binding RamUsagePercent, Mode=OneWay}"/><Run Text="%"/>
                             </TextBlock>
                         </Border>
                     </StackPanel>

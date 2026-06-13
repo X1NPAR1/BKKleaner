@@ -24,6 +24,12 @@ public interface IProfileService
     /// <summary>Replaces the action set of a profile and persists the customization.</summary>
     void UpdateProfileActions(string profileId, IEnumerable<string> actionIds);
 
-    /// <summary>Restores a profile to its built-in action set.</summary>
+    /// <summary>Restores a built-in profile to its default action set.</summary>
     void ResetProfile(string profileId);
+
+    /// <summary>Creates a new user-defined profile and returns it.</summary>
+    GamingProfile CreateCustomProfile(string name, IEnumerable<string> actionIds);
+
+    /// <summary>Deletes a user-created profile (built-in profiles cannot be deleted).</summary>
+    bool DeleteProfile(string profileId);
 }

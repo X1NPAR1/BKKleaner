@@ -38,6 +38,20 @@ public sealed class GamingProfile
     /// <summary>Editable at runtime through the profile editor.</summary>
     public required List<string> ActionIds { get; set; }
     public bool IsActive { get; set; }
+
+    /// <summary>Built-in profiles can be reset but not deleted; custom ones can be deleted.</summary>
+    public bool IsBuiltIn { get; init; } = true;
+
+    /// <summary>For custom profiles the user-entered name (NameKey is not a loc key then).</summary>
+    public string? CustomName { get; set; }
+}
+
+/// <summary>Persisted definition of a user-created profile.</summary>
+public sealed class CustomProfileDefinition
+{
+    public required string Id { get; init; }
+    public required string Name { get; init; }
+    public required List<string> ActionIds { get; set; }
 }
 
 public sealed class AppliedActionRecord

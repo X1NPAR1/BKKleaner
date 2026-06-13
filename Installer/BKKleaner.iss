@@ -3,7 +3,7 @@
 ; Expects the self-contained publish output in publish\win-x64\
 
 #define MyAppName "BKKleaner"
-#define MyAppVersion "3.6.1"
+#define MyAppVersion "3.7.0"
 #define MyAppPublisher "X1NPAR1"
 #define MyAppURL "https://github.com/X1NPAR1/BKKleaner"
 #define MyAppExeName "BKKleaner.exe"

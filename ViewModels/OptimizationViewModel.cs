@@ -58,6 +58,7 @@ public sealed partial class OptimizationViewModel : ObservableObject
 {
     private readonly IOptimizationService _optimization;
     private readonly IRecoveryService _recovery;
+    private readonly Services.INotificationService _notifications;
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _statusMessage;
@@ -70,10 +71,11 @@ public sealed partial class OptimizationViewModel : ObservableObject
     public System.ComponentModel.ICollectionView GroupedActions { get; }
 
     public OptimizationViewModel(IOptimizationService optimization, IRecoveryService recovery,
-        ILocalizationService localization)
+        Services.INotificationService notifications, ILocalizationService localization)
     {
         _optimization = optimization;
         _recovery = recovery;
+        _notifications = notifications;
         foreach (var action in optimization.Actions)
             Actions.Add(new ActionItemViewModel(action, this));
 
@@ -107,10 +109,15 @@ public sealed partial class OptimizationViewModel : ObservableObject
                 if (await _optimization.ApplyAsync(item.Action.Id))
                     item.IsApplied = true;
             }
+            // Re-sync every toggle: applying a power plan may have reverted another one.
+            foreach (var a in Actions) a.IsApplied = a.Action.IsApplied;
+            AppliedCount = Actions.Count(a => a.IsApplied);
+
             StatusMessage = item.IsApplied
                 ? $"{item.Title} ✓"
                 : $"{item.Title} — {Loc.Instance["opt.reverted"]}";
-            AppliedCount = Actions.Count(a => a.IsApplied);
+            _notifications.Notify(Loc.Instance["opt.title"], StatusMessage,
+                item.IsApplied ? Services.NotificationLevel.Success : Services.NotificationLevel.Info);
         }
         finally
         {

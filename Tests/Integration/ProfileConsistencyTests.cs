@@ -91,4 +91,52 @@ public class ProfileConsistencyTests
         profiles.UpdateProfileActions("laptop", ["game_mode"]);
         Assert.True(fired);
     }
+
+    [Fact]
+    public void Create_and_delete_custom_profile()
+    {
+        var (profiles, _) = Create();
+        var before = profiles.Profiles.Count;
+
+        var custom = profiles.CreateCustomProfile("My FPS", ["game_mode", "latency_responsiveness"]);
+        Assert.False(custom.IsBuiltIn);
+        Assert.Equal("My FPS", custom.CustomName);
+        Assert.Equal(before + 1, profiles.Profiles.Count);
+        Assert.Equal(["game_mode", "latency_responsiveness"], custom.ActionIds);
+
+        Assert.True(profiles.DeleteProfile(custom.Id));
+        Assert.Equal(before, profiles.Profiles.Count);
+    }
+
+    [Fact]
+    public void Built_in_profiles_cannot_be_deleted()
+    {
+        var (profiles, _) = Create();
+        Assert.False(profiles.DeleteProfile("balanced"));
+        Assert.Contains(profiles.Profiles, p => p.Id == "balanced");
+    }
+
+    [Fact]
+    public void Custom_profiles_persist_across_reloads()
+    {
+        var settings = TestHelpers.CreateSettings(out _);
+        var security = new SecurityService(NullLogger<SecurityService>.Instance);
+        var recovery = new RecoveryService(NullLogger<RecoveryService>.Instance, security, settings);
+        var optimization = new OptimizationService(NullLogger<OptimizationService>.Instance, security, recovery, settings);
+
+        var first = new ProfileService(NullLogger<ProfileService>.Instance, optimization, recovery, settings);
+        first.CreateCustomProfile("Persisted", ["game_mode"]);
+
+        var reloaded = new ProfileService(NullLogger<ProfileService>.Instance, optimization, recovery, settings);
+        Assert.Contains(reloaded.Profiles, p => p.CustomName == "Persisted" && !p.IsBuiltIn);
+    }
+
+    [Fact]
+    public void Power_plans_are_registered_as_mutually_exclusive()
+    {
+        var (_, optimization) = Create();
+        Assert.Equal(
+            ["power_high_performance", "power_saver", "power_ultimate"],
+            optimization.PowerPlanActionIds.OrderBy(x => x));
+    }
 }

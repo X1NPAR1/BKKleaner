@@ -29,27 +29,30 @@ public class NavigationAndThemeTests
         var ramCleaner = new RamCleanerService(NullLogger<RamCleanerService>.Instance, security);
         var updates = new UpdateService(NullLogger<UpdateService>.Instance, security);
         var logStore = new LogStore();
-        var autoRam = new AutoRamCleanService(NullLogger<AutoRamCleanService>.Instance, settings, ramCleaner);
+        var notifications = new NotificationService(NullLogger<NotificationService>.Instance);
+        var autoRam = new AutoRamCleanService(NullLogger<AutoRamCleanService>.Instance, settings, ramCleaner, notifications);
         var systemInfo = new SystemInfoService(NullLogger<SystemInfoService>.Instance);
         var navigation = new NavigationService();
+        var boost = new SystemBoostService(NullLogger<SystemBoostService>.Instance, security, ramCleaner, monitoring);
 
         return new MainViewModel(
-            new DashboardViewModel(monitoring, optimization, ramCleaner, tempCleaner, systemInfo, navigation),
+            new DashboardViewModel(monitoring, optimization, ramCleaner, tempCleaner, systemInfo, navigation, boost, notifications),
             new MonitoringViewModel(monitoring),
-            new OptimizationViewModel(optimization, recovery, localization),
-            new RamCleanerViewModel(ramCleaner, settings, autoRam),
-            new TempCleanerViewModel(tempCleaner),
-            new ProfilesViewModel(profiles, benchmark, localization),
-            new BenchmarkViewModel(benchmark),
-            new RecoveryViewModel(recovery),
+            new OptimizationViewModel(optimization, recovery, notifications, localization),
+            new RamCleanerViewModel(ramCleaner, settings, autoRam, notifications),
+            new TempCleanerViewModel(tempCleaner, notifications),
+            new ProfilesViewModel(profiles, benchmark, notifications, localization),
+            new BenchmarkViewModel(benchmark, notifications),
+            new RecoveryViewModel(recovery, notifications),
             new SettingsViewModel(settings, themes, localization),
             new LogsViewModel(logStore),
-            new UpdatesViewModel(updates),
+            new UpdatesViewModel(updates, notifications),
             security,
             settings,
             ramCleaner,
             navigation,
             monitoring,   // IHardwareMonitoringService
+            notifications,
             localization);
     }
 

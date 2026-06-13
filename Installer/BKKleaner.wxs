@@ -11,7 +11,7 @@
 
   <Package Name="BKKleaner"
            Manufacturer="X1NPAR1"
-           Version="3.6.1.0"
+           Version="3.7.0.0"
            UpgradeCode="7F2C9A14-6B3E-4D52-9C81-2C3D5E9A0B17"
            Scope="perMachine"
            Compressed="yes">
@@ -45,7 +45,7 @@
       <!-- Registry: default language + install metadata -->
       <Component Id="RegistryEntries" Directory="INSTALLFOLDER" Guid="*">
         <RegistryKey Root="HKLM" Key="SOFTWARE\BKKleaner">
-          <RegistryValue Type="string" Name="Version" Value="3.6.1" KeyPath="yes" />
+          <RegistryValue Type="string" Name="Version" Value="3.7.0" KeyPath="yes" />
           <RegistryValue Type="string" Name="InstallPath" Value="[INSTALLFOLDER]" />
         </RegistryKey>
       </Component>

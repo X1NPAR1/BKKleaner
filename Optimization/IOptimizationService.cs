@@ -8,6 +8,9 @@ public interface IOptimizationService
 {
     IReadOnlyList<OptimizationAction> Actions { get; }
 
+    /// <summary>Action ids that change the active power plan — mutually exclusive (only one active).</summary>
+    IReadOnlyCollection<string> PowerPlanActionIds { get; }
+
     /// <summary>Describes exactly what an action would change (current → target).</summary>
     Task<ActionPreview> PreviewAsync(string actionId);
 
