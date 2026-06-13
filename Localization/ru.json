@@ -149,6 +149,7 @@
   "recovery.restored": "Успешно восстановлено.",
   "recovery.restore_failed": "Сбой восстановления — см. журналы.",
   "recovery.empty": "Точек восстановления пока нет. Они создаются автоматически перед оптимизациями.",
+  "recovery.items": "эл.",
   "recovery.kind.systemrestorepoint": "Точка восстановления системы",
   "recovery.kind.registrybackup": "Резервная копия реестра",
   "recovery.kind.configbackup": "Резервная копия настроек",

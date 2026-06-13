@@ -149,6 +149,7 @@
   "recovery.restored": "Başarıyla geri yüklendi.",
   "recovery.restore_failed": "Geri yükleme başarısız — kayıtlara bakın.",
   "recovery.empty": "Henüz kurtarma noktası yok. Optimizasyonlardan önce otomatik oluşturulurlar.",
+  "recovery.items": "öğe",
   "recovery.kind.systemrestorepoint": "Sistem geri yükleme noktası",
   "recovery.kind.registrybackup": "Kayıt defteri yedeği",
   "recovery.kind.configbackup": "Yapılandırma yedeği",

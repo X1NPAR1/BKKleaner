@@ -1,4 +1,4 @@
-# BKKleaner full build pipeline: clean -> restore -> compile -> test -> publish -> package -> installer
+﻿# BKKleaner full build pipeline: clean -> restore -> compile -> test -> publish -> package -> installer
 param(
     [string]$Configuration = "Release",
     [string]$Runtime = "win-x64",
@@ -68,7 +68,7 @@ if (-not $SkipInstaller) {
         & wix extension add -g WixToolset.UI.wixext
         & wix build "$root\Installer\BKKleaner.wxs" -ext WixToolset.UI.wixext `
             -d PublishDir="$root\publish\$Runtime" -b "$root" -b "$root\Installer" `
-            -arch x64 -o "$root\artifacts\BKKleaner-3.6.0.msi"
+            -arch x64 -o "$root\artifacts\BKKleaner-3.6.1.msi"
         if ($LASTEXITCODE -ne 0) { exit 1 }
     } else {
         Write-Warning "WiX not found - .msi installer skipped. Install with: dotnet tool install --global wix"

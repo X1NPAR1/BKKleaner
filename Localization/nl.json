@@ -149,6 +149,7 @@
   "recovery.restored": "Succesvol hersteld.",
   "recovery.restore_failed": "Herstel mislukt — zie logboeken.",
   "recovery.empty": "Nog geen herstelpunten. Ze worden automatisch gemaakt vóór optimalisaties.",
+  "recovery.items": "items",
   "recovery.kind.systemrestorepoint": "Systeemherstelpunt",
   "recovery.kind.registrybackup": "Registerback-up",
   "recovery.kind.configbackup": "Configuratieback-up",

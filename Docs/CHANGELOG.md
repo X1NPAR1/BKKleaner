@@ -1,5 +1,10 @@
 # Changelog
 
+## v3.6.1 — 2026-06-13
+
+### Changed
+- **Recovery page** now groups recovery points by their backup **session date-time**. Each backup run is a separate, clearly-labelled group (calendar header + item count), and even backups made on the same day are separated because their time differs. Within a group, each item shows its localized type and exact time.
+
 ## v3.6.0 — 2026-06-13
 
 A design, localization and update-engine release.

@@ -149,6 +149,7 @@
   "recovery.restored": "Erfolgreich wiederhergestellt.",
   "recovery.restore_failed": "Wiederherstellung fehlgeschlagen — siehe Protokolle.",
   "recovery.empty": "Noch keine Wiederherstellungspunkte. Sie werden vor Optimierungen automatisch erstellt.",
+  "recovery.items": "Elemente",
   "recovery.kind.systemrestorepoint": "Systemwiederherstellungspunkt",
   "recovery.kind.registrybackup": "Registrierungs-Backup",
   "recovery.kind.configbackup": "Konfigurations-Backup",

@@ -1,22 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
   BKKleaner MSI authoring (WiX v5).
   Build:
     wix extension add -g WixToolset.UI.wixext
     wix build Installer\BKKleaner.wxs -ext WixToolset.UI.wixext ^
-        -d PublishDir=publish\win-x64 -arch x64 -o artifacts\BKKleaner-3.5.2.msi
+        -d PublishDir=publish\win-x64 -arch x64 -o artifacts\BKKleaner-3.6.1.msi
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
   <Package Name="BKKleaner"
            Manufacturer="X1NPAR1"
-           Version="3.6.0.0"
+           Version="3.6.1.0"
            UpgradeCode="7F2C9A14-6B3E-4D52-9C81-2C3D5E9A0B17"
            Scope="perMachine"
            Compressed="yes">
 
-    <SummaryInformation Description="BKKleaner — premium Windows optimization, monitoring and cleaning suite" />
+    <SummaryInformation Description="BKKleaner - premium Windows optimization, monitoring and cleaning suite" />
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of BKKleaner is already installed." />
     <MediaTemplate EmbedCab="yes" />
@@ -45,7 +45,7 @@
       <!-- Registry: default language + install metadata -->
       <Component Id="RegistryEntries" Directory="INSTALLFOLDER" Guid="*">
         <RegistryKey Root="HKLM" Key="SOFTWARE\BKKleaner">
-          <RegistryValue Type="string" Name="Version" Value="3.6.0" KeyPath="yes" />
+          <RegistryValue Type="string" Name="Version" Value="3.6.1" KeyPath="yes" />
           <RegistryValue Type="string" Name="InstallPath" Value="[INSTALLFOLDER]" />
         </RegistryKey>
       </Component>

@@ -30,21 +30,55 @@
             <Border Grid.Row="1" Style="{StaticResource Card}">
                 <Grid>
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding Points}">
+                        <ItemsControl ItemsSource="{Binding GroupedPoints}">
+                            <ItemsControl.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.ContainerStyle>
+                                        <Style TargetType="GroupItem">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="GroupItem">
+                                                        <Border Background="{DynamicResource Brush.CardHover}" CornerRadius="10"
+                                                                Padding="14,12" Margin="0,0,0,12">
+                                                            <StackPanel>
+                                                                <!-- Session date-time header -->
+                                                                <DockPanel Margin="0,0,0,8">
+                                                                    <Border DockPanel.Dock="Right" Style="{StaticResource Pill}"
+                                                                            Background="{DynamicResource Brush.Accent}">
+                                                                        <TextBlock Foreground="{DynamicResource Brush.OnAccent}" FontSize="11" FontWeight="SemiBold">
+                                                                            <Run Text="{Binding ItemCount, Mode=OneWay}"/><Run Text=" "/><Run Text="{Binding [recovery.items], Mode=OneWay, Source={x:Static loc:Loc.Instance}}"/>
+                                                                        </TextBlock>
+                                                                    </Border>
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock Text="&#xE787;" FontFamily="Segoe MDL2 Assets"
+                                                                                   Foreground="{DynamicResource Brush.Accent}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
+                                                                    </StackPanel>
+                                                                </DockPanel>
+                                                                <ItemsPresenter/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </GroupStyle.ContainerStyle>
+                                </GroupStyle>
+                            </ItemsControl.GroupStyle>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{DynamicResource Brush.CardHover}" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                                    <Border Background="{DynamicResource Brush.Card}" CornerRadius="7" Padding="12,9" Margin="0,3">
                                         <DockPanel>
                                             <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Padding="12,6"
                                                     Content="{Binding [recovery.restore], Source={x:Static loc:Loc.Instance}}"
                                                     Command="{Binding DataContext.RestoreCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}"/>
-                                            <TextBlock DockPanel.Dock="Left" Text="&#xE777;" FontFamily="Segoe MDL2 Assets"
-                                                       Foreground="{DynamicResource Brush.Accent}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                            <TextBlock DockPanel.Dock="Left" Text="&#xE8F1;" FontFamily="Segoe MDL2 Assets"
+                                                       Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                             <StackPanel VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Description}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Description}" FontWeight="SemiBold" FontSize="13"/>
                                                 <TextBlock Style="{StaticResource Caption}">
-                                                    <Run Text="{Binding Kind, Mode=OneWay, Converter={StaticResource EnumLabel}, ConverterParameter=recovery.kind}"/><Run Text="  ·  "/><Run Text="{Binding CreatedAt, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd HH:mm}}"/>
+                                                    <Run Text="{Binding KindLabel, Mode=OneWay}"/><Run Text="  ·  "/><Run Text="{Binding Time, Mode=OneWay}"/>
                                                 </TextBlock>
                                             </StackPanel>
                                         </DockPanel>
@@ -53,6 +87,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
+
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
                                 Visibility="{Binding Points.Count, Converter={StaticResource EmptyToVisible}}">
                         <TextBlock Text="&#xE777;" FontFamily="Segoe MDL2 Assets" FontSize="40" Opacity="0.4"

@@ -149,6 +149,7 @@
   "recovery.restored": "Restored successfully.",
   "recovery.restore_failed": "Restore failed — see logs.",
   "recovery.empty": "No recovery points yet. They are created automatically before optimizations.",
+  "recovery.items": "items",
   "recovery.kind.systemrestorepoint": "System restore point",
   "recovery.kind.registrybackup": "Registry backup",
   "recovery.kind.configbackup": "Config backup",
